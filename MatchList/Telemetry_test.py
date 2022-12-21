@@ -76,4 +76,4 @@ if __name__ == "__main__":
             "stack_count": 1,
             "sub_category": "Main"
         }
-    })]
+    })]ㅇㅇㅇ
