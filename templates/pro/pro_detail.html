@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="container my-3">
+    <!-- message 표시 -->
+    {% if messages %}
+    <div class="alert alert-danger my-3" role="alert">
+    {% for message in messages %}
+        <strong>{{ message.tags }}</strong>
+        <ul><li>{{ message.message }}</li></ul>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- 비디오 관련 (html파일을 로드 시켜 표현) -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript">
+    //<![CDATA[
+    $(function(){
+        $("#result").load("{% static video %}");
+    });
+    //]]>
+    </script>
+
+    <div id="result"></div>
+
+    <table font-size:2px;>
+        <thead>
+        <tr>
+            <th nowrap class="table-title">팀명</th>
+            <th nowrap class="table-title">아이디</th>
+            <th nowrap class="table-title">킬</th>
+            <th nowrap class="table-title">헤드샷</th>
+            <th nowrap class="table-title">로드킬</th>
+            <th nowrap class="table-title">팀킬</th>
+            <th nowrap class="table-title">최장거리 킬</th>
+            <th nowrap class="table-title">어시스트</th>
+            <th nowrap class="table-title">입힌<br>데미지</th>
+            <th nowrap class="table-title">받은<br>데미지</th>
+            <th nowrap class="table-title"><span data-tooltip-text="Down But No Out의 약자">DBNO</th>  <!-- (기절 했지만 부활 횟수) 이후 툴팁 같은 기능으로 추가설명-->
+            <th nowrap class="table-title">살려준<br>횟수</th>
+            <th nowrap class="table-title">죽음<br>종류</th>
+            <!-- 생존 관련 -->
+            <th nowrap class="table-title">생존시간</th>
+            <th nowrap class="table-title">이동거리</th>
+            <th nowrap class="table-title">회복</th>
+            <th nowrap class="table-title">부스트</th>
+            <th nowrap class="table-title">무기<br>획득</th>
+            <th nowrap class="table-title">순위</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if match_data %}
+        {% for match in match_data %}
+        <tr class="text-center">
+            <td nowrap> {{match.team_name}} </td>
+            <td nowrap> {{match.user_name}} </td>
+            <td nowrap> {{match.kill}}킬 </td>
+            <td nowrap> {{match.headkill}}킬 </td>
+            <td nowrap> {{match.loadkill}}킬 </td>
+            <td nowrap> {{match.teamkill}}킬 </td>
+            <td nowrap> {{match.longestkill}}(M) </td>
+            <td nowrap> {{match.assist}}회 </td>
+            <td nowrap> {{match.damagedealt}} </td>
+            <td nowrap> {{match.damagetaken}} </td>
+            <td nowrap> {{match.dbno}}회 </td>
+            <td nowrap> {{match.revive}}회 </td>
+            <td nowrap> {{match.deathtype}} </td>
+            <!-- 생 관련 -->
+            <td nowrap> {{match.timesurvived}} </td>
+            <td nowrap> {{match.distance}}(M) </td>
+            <td nowrap> {{match.heal}}회 </td>
+            <td nowrap> {{match.boost}}회 </td>
+            <td nowrap> {{match.acquired}}회 </td>
+            <td nowrap> {{match.ranking}}위 </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="10">API 오류로 데이터를 불러오지 못했습니다. </td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <a href = "{% url 'pro:index' %}" class="btn btn-primary">초기화면</a>
+</script>
+{% endblock %}
