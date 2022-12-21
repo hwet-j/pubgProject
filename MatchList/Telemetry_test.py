@@ -24,21 +24,59 @@ def pro_anal():
         attackLog = telemetry.filter_by('log_player_attack')  # 교전 (공격한 경우) 데이터
         # fire_count = telemetry.filter_by('log_weapon_fire_count')  # 교전 (공격한 경우) 데이터
 
-        print(attackLog)
+        # print(attackLog)
+        unique_check = []
         for log in attackLog:
-            print(log['attacker']['name'])
-            break
+            try:
+                unique_check.append(log['weapon']['attached_items'])
+            except:
+                None
+            # print(log['attack_type'])
+        unique_check = sum(unique_check, [])
+        # print(unique_check)
+        print(list(set(unique_check)))
+        # print(list(unique_check))
 
         sys.exit()
 
+def mat_test(shard, match_ty):
+    import pandas as pd
+    from chicken_dinner.pubgapi import PUBG
+    # API KEY 설정
+    api_key = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2ZGNjNzNhMC0yMDk5LTAxMzctYjNjMi0wMmI4NjZkNzliOGIiLCJpc3MiOiJnYW1lbG9ja2VyIiwiaWF0IjoxNTUxNjk2NzA2LCJwdWIiOiJibHVlaG9sZSIsInRpdGxlIjoicHViZyIsImFwcCI6InB1YmctYmVzdC1wbGF5In0.Oz7GmLsWF7038XIO4vKd5sivhLreOnizxTNcARAEFQs'
+    # PUBG 인스턴스 가져오기
+    pubg = PUBG(api_key=api_key, shard=shard, gzip=True)
 
+    if match_ty == 'com':
+        pgc_data = pd.read_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/PGC_MATCH.csv")
+    else:
+        pgc_data = pd.read_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/ALL_MATCH.csv")
 
+    for mat in pgc_data['match_id']:
+        try:
+            current_match = pubg.match(mat)  # 매치 기록 하나를 가져옴
+            telemetry = current_match.get_telemetry()  # 현재 매치의 Telemetry값을 가져옴
+
+            attackLog = telemetry.filter_by('log_player_attack')  # 교전 (공격한 경우) 데이터
+            # fire_count = telemetry.filter_by('log_weapon_fire_count')  # 교전 (공격한 경우) 데이터
+
+            # print(attackLog)
+            unique_check = []
+            for log in attackLog:
+                unique_check.append(log['vehicle'])
+
+            print(list(set(unique_check)))
+        except Exception as e:
+            print(e)
+
+    sys.exit()
 
 
 if __name__ == "__main__":
     pro_anal()
-
-    TelemetryEvent({
+    # mat_test("pc-tournament", 'com')    # steam, pc-tournament
+    '''
+    TelemetryEvent = ({
         "_D": "2022-11-20T15:03:40.910Z",
         "_T": "LogPlayerAttack",
         "attack_id": 620757206,
@@ -46,8 +84,8 @@ if __name__ == "__main__":
         "attacker": {
             "account_id": "account.db97ab142d4748e694dd3fe24222efdb",
             "health": 77,
-            "is_in_blue_zone": false,
-            "is_in_red_zone": false,
+            "is_in_blue_zone": False,
+            "is_in_red_zone": False,
             "location": {
                 "x": 466215.03125,
                 "y": 203538.96875,
@@ -60,9 +98,9 @@ if __name__ == "__main__":
         },
         "common": {
             "is_game": 9
-        },
+        ,
         "fire_weapon_stack_count": 7,
-        "vehicle": null,
+        "vehicle": Null,
         "weapon": {
             "attached_items": [
                 "Item_Attach_Weapon_Magazine_ExtendedQuickDraw_Large_C",
@@ -76,4 +114,5 @@ if __name__ == "__main__":
             "stack_count": 1,
             "sub_category": "Main"
         }
-    })]ㅇㅇㅇ
+    })]
+    '''
