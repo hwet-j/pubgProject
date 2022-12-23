@@ -91,7 +91,6 @@ def csvRead(request):
 def detail(request, match_id):
     match_data = MatchData.objects.filter(match_id=match_id)
     video_path = "videos/pgc/" + match_id + ".html"
-    print(video_path)
     context = {'match_data': match_data, "video" : video_path }
     return render(request, 'pro/pro_detail.html', context)
 

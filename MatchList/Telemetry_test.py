@@ -73,8 +73,14 @@ def mat_test(shard, match_ty):
 
 
 if __name__ == "__main__":
-    pro_anal()
+    # pro_anal()
     # mat_test("pc-tournament", 'com')    # steam, pc-tournament
+
+    import matplotlib.pyplot as plt
+    plt.plot([1,2,3])
+    plt.show()
+
+
     '''
     TelemetryEvent = ({
         "_D": "2022-11-20T15:03:40.910Z",
