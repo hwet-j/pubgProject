@@ -285,6 +285,8 @@ def personal_anal():
 
 
     for cnt, mat in enumerate(pgc_data['match_id']):
+        if cnt == 2:
+            break
         current_match = pubg.match(mat)  # 매치 기록 하나를 가져옴
         telemetry = current_match.get_telemetry()  # 현재 매치의 Telemetry값을 가져옴
         positions = telemetry.player_positions()  # 각플레이어의 위치값을 가져온다.
@@ -307,7 +309,8 @@ def personal_anal():
             if os.path.isfile("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat + "_" + player + ".csv"):
                 print(leng, "개 데이터 중,", cnt + 1, "번째 매치의 플레이어 :", player  ," 의 정보 SKIP")
                 continue
-            print("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat + "_" + player + ".csv")
+
+            print("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat + "__" + player + ".csv")
             curpos = np.array(positions[player])  # 해당 플레이어의 위치 정보를 가져옴
 
             # 자기장(흰 원)이 존재하지 않는 데이터를 제외
@@ -329,20 +332,23 @@ def personal_anal():
             mapx, mapy = map_dimensions[map_id]
             phases = np.where(whites[1:, 4] - whites[:-1, 4] < 0)[0] + 1  # 자기장 페이즈 구분
 
-            vehicles = telemetry.filter_by('log_vehicle_ride')  # 차량 탑승 데이터
-            firstVehicle = {}
-            used_Id = []
+        vehicles = telemetry.filter_by('log_vehicle_ride')  # 차량 탑승 데이터
+        firstVehicle = {}
+        used_Id = []
 
-            # 팀에서 첫 차량 탑승 경우만 구하기
-            for vehicle in vehicles:
-                if vehicle['vehicle']['vehicle_type'] != 'WheeledVehicle' or vehicle['character']['name'] in \
-                        firstVehicle.keys() or vehicle['character']['name'] in used_Id:
-                    continue
-                else:
-                    firstVehicle[vehicle['character']['name']] = (pd.to_timedelta(vehicle.timestamp[vehicle.timestamp.find('T') + 1:-1]) - startTime).total_seconds()
-                    used_Id.append(vehicle['character']['name'])
-            vehicle_df = pd.DataFrame(list(firstVehicle.items()), columns=["name", "time"])
-            firstVehicle_df = pd.concat([firstVehicle_df, vehicle_df], axis=0, sort=False,  ignore_index=True)
+        # 첫 차량 탑승 경우만 구하기
+        for vehicle in vehicles:
+            if vehicle['vehicle']['vehicle_type'] != 'WheeledVehicle' or vehicle['character']['name'] in \
+                    firstVehicle.keys() or vehicle['character']['name'] in used_Id:
+                continue
+            else:
+                firstVehicle[vehicle['character']['name']] = (pd.to_timedelta(vehicle.timestamp[vehicle.timestamp.find('T') + 1:-1]) - startTime).total_seconds()
+                used_Id.append(vehicle['character']['name'])
+        vehicle_df = pd.DataFrame(list(firstVehicle.items()), columns=["name", "time"])
+        firstVehicle_df = pd.concat([firstVehicle_df, vehicle_df], axis=0, sort=False,  ignore_index=True)
+        print(firstVehicle_df)
+
+        # firstVehicle_df.to_csv("./vehicle.csv", index=False)
 
 
         
