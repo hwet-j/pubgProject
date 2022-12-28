@@ -5,6 +5,17 @@ import datetime
 
 import matplotlib.pyplot as plt
 
+
+def createDirectory(folderDirectory):
+    import os
+    try:
+        if not os.path.exists(folderDirectory):
+            os.makedirs(folderDirectory)
+    except OSError:
+        print("경로 생성에 실패하였습니다.")
+
+
+
 def weapon_mapping():
     weapons = {
         "AIPawn_Base_Female_C": "AI Player",
@@ -277,21 +288,33 @@ def personal_anal():
     attack_df = pd.DataFrame()
     blue_df = pd.DataFrame()
     teamCount = {}
+
+
     firstVehicle_df = pd.DataFrame()
+    justAttack_df = pd.DataFrame()
 
     # 전체 데이터
-    all_attacker_victim_df = pd.DataFrame()
+    attacker_victim_all = pd.DataFrame()
+    match_participant_stats_all = pd.DataFrame()
     personal_df = pd.DataFrame(columns=['teamName', 'userName', "damageDealt", "damageTaken", "damageMagnetic", "playCount", "mainWeapon"])
 
 
     for cnt, mat in enumerate(pgc_data['match_id']):
         if cnt == 2:
             break
+        # 폴더 생성 ( 매치 별 )
+        fold_path = "C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat
+        createDirectory(fold_path)
+
+        print(leng, "개 데이터 중,", cnt + 1, "번 째 매치 데이터 진행.....")
         current_match = pubg.match(mat)  # 매치 기록 하나를 가져옴
         telemetry = current_match.get_telemetry()  # 현재 매치의 Telemetry값을 가져옴
         positions = telemetry.player_positions()  # 각플레이어의 위치값을 가져온다.
         circles = telemetry.circle_positions()  # 자기장(원)에 대한 위치 정보를 가져온다. (white, blue, red)
-        players = np.array(telemetry.player_names())  # 매치에 참가한 플레이어 목록
+        # 매치에 참가한 플레이어 목록
+        players = np.array(telemetry.player_names())
+        participants = current_match.participants
+
 
         # 게임 시작 시간
         startTime = pd.to_timedelta(telemetry.started()[telemetry.started().find('T') + 1:-1])
@@ -303,14 +326,179 @@ def personal_anal():
         phaseTimes = whites[phases, 0]
         phaseTimes = np.append(phaseTimes, endTime)
 
+
+        """
+            첫 차량 탑승 경우만 구하기 (시간 순으로 저장)
+            vehicle_df : 한 매치에 대한 정보
+            firstVehicle_df : 전체 매치에 대한 정보
+    
+            :param str name: 플레이어 아이디
+            :param str time: 이벤트 발생 시간(차량 탑승 시간)
+        """
+        vehicles = telemetry.filter_by('log_vehicle_ride')  # 차량 탑승 데이터
+        firstVehicle = {}
+        used_Id = []
+
+        for vehicle in vehicles:
+            if vehicle['vehicle']['vehicle_type'] != 'WheeledVehicle' or vehicle['character']['name'] in firstVehicle.keys() or vehicle['character']['name'] in used_Id:
+                continue
+            else:
+                firstVehicle[vehicle['character']['name']] = (pd.to_timedelta(vehicle.timestamp[vehicle.timestamp.find('T') + 1:-1]) - startTime).total_seconds()
+                used_Id.append(vehicle['character']['name'])
+
+        # 현재 매치의 데이터
+        vehicle_df = pd.DataFrame(list(firstVehicle.items()), columns=["name", "time"])
+        vehicle_df['match_id'] = mat
+        # 파일저장 (파일 존재시 SKiP)
+        if os.path.isfile(fold_path + "/" + "firstvehicle.csv"):
+            None
+        else:
+            vehicle_df.to_csv(fold_path + "/" + "firstvehicle.csv", index=False)
+        # 모든 매치 기록의 데이터 병합
+        firstVehicle_df = pd.concat([firstVehicle_df, vehicle_df], axis=0, sort=False,  ignore_index=True)
+
+
+        """
+            공격 로그 (교전횟수 또는 총기 사용량 파악을 위함) -> 총기를 몇번 사용하였는지 확인 가능 / 타격 여부 상관없이 발사 횟수
+            attackData : 한 매치에 대한 정보
+            justAttack_df : 전체 매치에 대한 정보
+
+            :param str name: 플레이어 아이디
+            :param str time: 이벤트 발생 시간(총기 사용)
+            :param str teamName: 플레이어의 팀명
+            :param float phase: 자기장 페이즈
+            :param str match_id: 매치 아이디
+        """
+        attackLog = telemetry.filter_by('log_player_attack')  # 교전 (공격한 경우) 데이터
+        attackData = [(log['attacker']['name'],
+                       (pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) - startTime).total_seconds())
+                      for log in attackLog if
+                      pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) > startTime]
+        
+        attackData = pd.DataFrame(attackData, columns=['name', 'time'])
+        attackData['teamName'] = attackData['name'].str.extract(r'([0-9A-Za-z]+)\_')  # 팀명 추출
+        attackData['phase'] = np.nan
+        attackData['match_id'] = mat
+
+        for i in range(len(phaseTimes) - 1):
+            attackData.loc[
+                (attackData['time'] < phaseTimes[i + 1]) & (attackData['time'] > phaseTimes[i]), 'phase'] = i + 1
+        attack_df = pd.concat([attack_df, attackData], axis = 0)
+
+        for team in attackData['teamName'].unique():
+            try:
+                teamCount[team] += 1
+            except KeyError:
+                teamCount[team] = 1
+
+        # 매치 하나의 데이터 저장 (파일 존재시 SKIP)
+        if os.path.isfile(fold_path + "/" + "attack_df.csv"):
+            None
+        else:
+            attack_df.to_csv(fold_path + "/" + "attack_df.csv", index=False)
+        # 매치 전체 데이터
+        justAttack_df = pd.concat([justAttack_df, attack_df], axis=0, sort=False,  ignore_index=True)
+
+        """
+            블루존 데미지 (기절 상태에서 입는 피해량은 0으로 나옴 -> 다른 것도 동일 )
+            blueData : 한 매치에 대한 정보
+            blue_df : 전체 매치에 대한 정보
+
+            :param str victim : 피해자
+            :param float damage : 피해량 
+            :param str time : 이벤트 발생 시간
+            :param str victim_teamName : 팀명
+            :param float phase: 자기장 페이즈
+            :param str match_id: 매치 아이디
+        """
+        blueZoneLog = telemetry.filter_by("log_player_take_damage")
+
+        blueData = [(log['victim']['name'], log['damage'],
+                       (pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) - startTime).total_seconds())
+                      for log in blueZoneLog if
+                      pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) > startTime and
+                    log['damage_type_category'] == "Damage_BlueZone"]
+
+        blueData = pd.DataFrame(blueData, columns=['victim', 'damage', 'time'])
+        blueData['victim_teamName'] = blueData['victim'].str.extract(r'([0-9A-Za-z]+)\_')  # 팀명 추출
+        blueData['phase'] = np.nan
+        for i in range(len(phaseTimes) - 1):
+            blueData.loc[
+                (blueData['time'] < phaseTimes[i + 1]) & (blueData['time'] > phaseTimes[i]), 'phase'] = i + 1
+        blueData['match_id'] = mat
+
+        # 현재 매치의 bluezone 피해량 데이터 저장
+        if os.path.isfile(fold_path + "/" + "blueZone.csv"):
+            None
+        else:
+            blueData.to_csv(fold_path + "/" + "blueZone.csv", index=False)
+
+        # 블루존 피해량 전체
+        blue_df = pd.concat([blue_df, blueData], axis=0)
+        for team in blueData['victim_teamName'].unique():
+            try:
+                teamCount[team] += 1
+            except KeyError:
+                teamCount[team] = 1
+
+        """
+            공격자, 피해자 로그 (누가 누구에게 피해를 줬는가 파악 가능 - 매치별 분석도 필요하기 때문에 match_id 저장 )
+            attacker_victim_df : 한 매치에 대한 정보
+            attacker_victim_all : 전체 매치에 대한 정보
+
+            :param str time : 이벤트 발생 시간(플레이어 끼리 공격을 가한 경우)
+            :param str attackter : 공격자
+            :param str victim : 피해자
+            :param float damage : 피해량 
+            :param str hit_type : 사용된 무기
+            :param str hit_area : 맞은 부위
+            :param str match_id: 매치 아이디
+        """
+        attacker_victim_data = attacker_victim(telemetry)
+        attacker_victim_df = pd.DataFrame()
+
+        for key, value in attacker_victim_data.items():
+            for row in value:
+                attacker_victim_df = attacker_victim_df.append({"match_id" : mat,
+                                                                "time": row[0],
+                                                                "attacker": row[1],
+                                                                "victim": row[2],
+                                                                "damage": row[3],
+                                                                "hit_type": row[4],
+                                                                "hit_area": row[5],
+                                                                }, ignore_index=True)
+        for i in range(len(phaseTimes) - 1):
+            attacker_victim_df.loc[
+                (attacker_victim_df['time'] < phaseTimes[i + 1]) & (
+                            attacker_victim_df['time'] > phaseTimes[i]), 'phase'] = i + 1
+
+        # 매치별 데이터 저장
+        if os.path.isfile(fold_path + "/" + "attacker_victim.csv"):
+            None
+        else:
+            attacker_victim_df.to_csv(fold_path + "/" + "attacker_victim.csv", index=False)
+
+        # 전체 데이터 병합
+        attacker_victim_all = pd.concat([attacker_victim_all, attacker_victim_df], ignore_index=True)
+        # 이해하기 어렵게 작성된 총 이름을 정식 명칭(?)으로 맵핑하기 위한 정보
+        weapons = weapon_mapping()
+        
+        # 플레이어 기록을 저장할 리스트(매치마다 초기화) - 연산을 통해 구해지는 데이터는 제외.
+        participants_stats = []
+        damage_taken = []
+
+
         # 플레이어 하나씩 진행
-        for player in players:
-            # 이미 저장된 데이터는 생략
-            if os.path.isfile("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat + "_" + player + ".csv"):
+        for part in participants:
+            player = part.name
+
+            # 이미 저장된 데이터는 생략 (구분자는 언더바 2개 "__")
+            if os.path.isfile(fold_path + "/" + player + ".csv"):
                 print(leng, "개 데이터 중,", cnt + 1, "번째 매치의 플레이어 :", player  ," 의 정보 SKIP")
                 continue
 
-            print("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat + "__" + player + ".csv")
+            # 어떤 매치의 어떤 플레이어 분석인지 Python console에 Print
+            # print("매치 ID : " + mat + "\t플레이어 :" + player)
             curpos = np.array(positions[player])  # 해당 플레이어의 위치 정보를 가져옴
 
             # 자기장(흰 원)이 존재하지 않는 데이터를 제외
@@ -332,99 +520,67 @@ def personal_anal():
             mapx, mapy = map_dimensions[map_id]
             phases = np.where(whites[1:, 4] - whites[:-1, 4] < 0)[0] + 1  # 자기장 페이즈 구분
 
-        vehicles = telemetry.filter_by('log_vehicle_ride')  # 차량 탑승 데이터
-        firstVehicle = {}
-        used_Id = []
+            # 플레이어 별 개인 기록
+            player_stats = part.stats
+            participants_stats.append(player_stats)
+            
+            try:        # 자기장에 죽었거나, 1등하며 피해를 입지 않은 경우 로그가 존재 하지 않아 오류 발생
+                damage_taken.append(telemetry.damage_taken()[player])
+            except:
+                damage_taken.append(0)      # 플레이어에게 받은 피해량 0
 
-        # 첫 차량 탑승 경우만 구하기
-        for vehicle in vehicles:
-            if vehicle['vehicle']['vehicle_type'] != 'WheeledVehicle' or vehicle['character']['name'] in \
-                    firstVehicle.keys() or vehicle['character']['name'] in used_Id:
-                continue
-            else:
-                firstVehicle[vehicle['character']['name']] = (pd.to_timedelta(vehicle.timestamp[vehicle.timestamp.find('T') + 1:-1]) - startTime).total_seconds()
-                used_Id.append(vehicle['character']['name'])
-        vehicle_df = pd.DataFrame(list(firstVehicle.items()), columns=["name", "time"])
-        firstVehicle_df = pd.concat([firstVehicle_df, vehicle_df], axis=0, sort=False,  ignore_index=True)
-        print(firstVehicle_df)
+        """
+            각 플레이어의 기록
+            match_participant_stats_df : 한 매치에 대한 정보
+            match_participant_stats_all : 전체 매치에 대한 정보
 
-        # firstVehicle_df.to_csv("./vehicle.csv", index=False)
+            :param int dbnos : Down But Not Out 으로 기절 시켰지만 죽이지 못한 횟수
+            :param int assists : 도움을 준횟수(킬관련)
+            :param int boosts : 부스트 아이템 사용 횟수
+            :param float damage_dealt : 가한 피해량
+            :param str death_type : 죽음 종류(자기장, 플레이어...)
+            :param int headshot_kills : 헤드샷으로 킬한 수
+            :param int heals : 체력 회복 아이탬 사용 횟수
+            :param int kill_place : 킬로 매긴 순위 (기준이 모호함 -> 제대로 파악 후 사용)
+            :param int kill_streaks : 연속 킬수 (시간에 대한 기준은 모름)
+            :param int kills : 킬 수 
+            :param float longest_kill : 킬 최대 거리
+            :param str name : 플레이어 아이디(게임 아이디)
+            :param str player_id : 플레이어 고유 번호
+            :param int revives : 팀원을 살린 횟수
+            :param float ride_distance : 차량 이동거리
+            :param int road_kills : 차량으로 죽인 횟수
+            :param float swim_distance : 수영으로 이동한 거리
+            :param int team_kills : 팀을 죽인 횟수
+            :param float time_survived : 생존 시간
+            :param int vehicle_destroys : 차량 파괴 횟수
+            :param float walk_distance : 걸어서 이동한 거리
+            :param int weapons_acquired : 무기 습득 횟수
+            :param int win_place : 게임 내 순위
+            :param float damage_taken : 받은 피해량
+            :param match_id : 매치 고유번호
+            :param str created_at : 게임 생성시간
+            :param str map_name : 맵 이름
+            :param float duration : 게임 지속시간
+            :param str telemetry_link : Telemetry의 url 주소를 저장 ( 이후에 어떻게 사용할지 모르기 때문에 )
+        """
 
+        match_participant_stats_df = pd.DataFrame(participants_stats)
+        match_participant_stats_df['damage_taken'] = damage_taken
+        match_participant_stats_df["match_id"] = mat
+        match_participant_stats_df["created_at"] = current_match.created_at
+        match_participant_stats_df["map_name"] = telemetry.map_name()
+        match_participant_stats_df["duration"] = current_match.duration
+        match_participant_stats_df["telemetry_link"] = current_match.telemetry_url
+        print(match_participant_stats_df.columns)
 
-        
-        # 공격 로그 (교전횟수 또는 총기 사용량 파악을 위함) 
-        attackLog = telemetry.filter_by('log_player_attack')  # 교전 (공격한 경우) 데이터
-        attackData = [(log['attacker']['name'],
-                       (pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) - startTime).total_seconds())
-                      for log in attackLog if
-                      pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) > startTime]
-        attackData = pd.DataFrame(attackData, columns=['name', 'time'])
-        attackData['teamName'] = attackData['name'].str.extract(r'([0-9A-Za-z]+)\_')  # 팀명 추출
-        attackData['phase'] = np.nan
+        match_participant_stats_all = pd.concat([match_participant_stats_all, match_participant_stats_df], ignore_index=True)
 
-        for i in range(len(phaseTimes) - 1):
-            attackData.loc[
-                (attackData['time'] < phaseTimes[i + 1]) & (attackData['time'] > phaseTimes[i]), 'phase'] = i + 1
-        attack_df = pd.concat([attack_df, attackData], axis = 0)
-
-        for team in attackData['teamName'].unique():
-            try:
-                teamCount[team] += 1
-            except KeyError:
-                teamCount[team] = 1
-
-        # 블루존 데미지 (기절해서 입는 피해량은 0으로 나옴)
-        blueZoneLog = telemetry.filter_by("log_player_take_damage")
-
-        blueData = [(log['victim']['name'], log['damage'],
-                       (pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) - startTime).total_seconds())
-                      for log in blueZoneLog if
-                      pd.to_timedelta(log.timestamp[log.timestamp.find('T') + 1:-1]) > startTime and
-                    log['damage_type_category'] == "Damage_BlueZone"]
-
-        blueData = pd.DataFrame(blueData, columns=['victim', 'damage', 'time'])
-        blueData['victim_teamName'] = blueData['victim'].str.extract(r'([0-9A-Za-z]+)\_')  # 팀명 추출
-        blueData['phase'] = np.nan
-        for i in range(len(phaseTimes) - 1):
-            blueData.loc[
-                (blueData['time'] < phaseTimes[i + 1]) & (blueData['time'] > phaseTimes[i]), 'phase'] = i + 1
-        blue_df = pd.concat([blue_df, blueData], axis=0)
-        for team in blueData['victim_teamName'].unique():
-            try:
-                teamCount[team] += 1
-            except KeyError:
-                teamCount[team] = 1
-
-        # 공격자, 피해자 로그 (누가 누구에게 피해를 줬는가 파악 가능
-        attacker_victim_data = attacker_victim(telemetry)
-        attacker_victim_df = pd.DataFrame()
-
-        for key, value in attacker_victim_data.items():
-            for row in value:
-                attacker_victim_df = attacker_victim_df.append({"match_id": mat,
-                                                                "time": row[0],
-                                                                "attacker": row[1],
-                                                                "victim": row[2],
-                                                                "damage": row[3],
-                                                                "hit_type": row[4],
-                                                                "hit_area": row[5],
-                                                                }, ignore_index=True)
-        for i in range(len(phaseTimes) - 1):
-            attacker_victim_df.loc[
-                (attacker_victim_df['time'] < phaseTimes[i + 1]) & (
-                            attacker_victim_df['time'] > phaseTimes[i]), 'phase'] = i + 1
-
-        all_attacker_victim_df = pd.concat([all_attacker_victim_df, attacker_victim_df], ignore_index=True)
-        # 이해하기 어렵게 작성된 총 이름을 정식 명칭(?)으로 맵핑하기 위한 정보
-        weapons = weapon_mapping()
-
-        print(leng, "개 데이터 중,", cnt + 1, "번 째 매치 데이터 진행 중.....")
 
     firstVehicle_team = pd.concat([firstVehicle_df[['name', 'time']].groupby('name').mean(),
                                    firstVehicle_df[['name', 'time']].groupby('name').count()], axis=1,
                                   sort=False)
     firstVehicle_team.columns = ['time', 'count']
-    print(firstVehicle_team)
     # firstVehicle_team = firstVehicle_team[firstVehicle_team['count'] > 10]        # 게임 참가 횟수 10회 이상 팀만
 
 
