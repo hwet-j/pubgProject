@@ -300,7 +300,7 @@ def personal_anal():
 
 
     for cnt, mat in enumerate(pgc_data['match_id']):
-        if cnt == 2:
+        if cnt == 1:
             break
         # 폴더 생성 ( 매치 별 )
         fold_path = "C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat
@@ -398,6 +398,7 @@ def personal_anal():
             attack_df.to_csv(fold_path + "/" + "attack_df.csv", index=False)
         # 매치 전체 데이터
         justAttack_df = pd.concat([justAttack_df, attack_df], axis=0, sort=False,  ignore_index=True)
+        justAttack_df.drop_duplicates(inplace=True)
 
         """
             블루존 데미지 (기절 상태에서 입는 피해량은 0으로 나옴 -> 다른 것도 동일 )
@@ -572,17 +573,32 @@ def personal_anal():
         match_participant_stats_df["map_name"] = telemetry.map_name()
         match_participant_stats_df["duration"] = current_match.duration
         match_participant_stats_df["telemetry_link"] = current_match.telemetry_url
-        print(match_participant_stats_df.columns)
+
+        # 매치별 데이터 저장
+        if os.path.isfile(fold_path + "/" + "participant_stats.csv"):
+            None
+        else:
+            match_participant_stats_df.to_csv(fold_path + "/" + "participant_stats.csv", index=False)
 
         match_participant_stats_all = pd.concat([match_participant_stats_all, match_participant_stats_df], ignore_index=True)
 
-
+    # 차량 탑승 정보 그룹화 -> 다른 분석 코드에서 작성..
+    '''
     firstVehicle_team = pd.concat([firstVehicle_df[['name', 'time']].groupby('name').mean(),
                                    firstVehicle_df[['name', 'time']].groupby('name').count()], axis=1,
                                   sort=False)
     firstVehicle_team.columns = ['time', 'count']
-    # firstVehicle_team = firstVehicle_team[firstVehicle_team['count'] > 10]        # 게임 참가 횟수 10회 이상 팀만
+    # firstVe0hicle_team = firstVehicle_team[firstVehicle_team['count'] > 10]        # 게임 참가 횟수 10회 이상 팀만'''
 
+
+
+
+    # 전체 데이터 저장 (있어도 덮어씌우기)
+    # match_participant_stats_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_participant_stats.csv", index=False)
+    # attacker_victim_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_attacker_victim.csv", index=False)
+    # justAttack_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_shooting.csv", index=False)
+    # blue_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_bluezone_damage.csv", index=False)
+    # firstVehicle_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_first_vehicle.csv", index=False)
 
 
 
