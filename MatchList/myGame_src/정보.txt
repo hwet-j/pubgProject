@@ -1,0 +1,8 @@
+설치가 필요한 라이브러리
+
+pip install chicken-dinner
+pip install matplotlib
+pip install pandas
+pip install numpy
+
+

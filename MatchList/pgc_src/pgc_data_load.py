@@ -345,6 +345,13 @@ def personal_data():
     # print(loser_df['time'].mean())
 
 
+# 개인 기록을 가지고 순위를 예측 하는 함수 ( 팀의 평균 )
+def predict_rank(personal_data):
+    return
+    
+
+
+
 
 
 

@@ -1,14 +1,10 @@
 
 # Create your views here.
-from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseNotAllowed
-from django.utils import timezone
-import pandas as pd
+from django.shortcuts import render, redirect
 import csv
 from gamer.models import Matchlist, Matchdata
 from django.core.paginator import Paginator     # 페이징을 위한 라이브러리
-from MatchList.match_save import match_search_save
+from MatchList.myGame_src.match_save import match_search_save
 
 ''' 초기 화면 설정 (제일 첫 화면) '''
 def home(request):
