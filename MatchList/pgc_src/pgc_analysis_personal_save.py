@@ -300,8 +300,8 @@ def personal_anal():
 
 
     for cnt, mat in enumerate(pgc_data['match_id']):
-        if cnt == 1:
-            break
+        # if cnt == 1:
+        #     break
         # 폴더 생성 ( 매치 별 )
         fold_path = "C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/pgc/Anal/" + mat
         createDirectory(fold_path)
@@ -591,14 +591,18 @@ def personal_anal():
     # firstVe0hicle_team = firstVehicle_team[firstVehicle_team['count'] > 10]        # 게임 참가 횟수 10회 이상 팀만'''
 
 
+    # 총기 사용 로그 ( phase 0값 추가 및 데이터 타입 변경 -> 저장 용량이 커져 github 저장이 안됨 크게 분석에 영향을 끼지지 않게 수정 )
+    justAttack_df['phase'].fillna(0, inplace=True)      # 자기장이 없을때 총기 사용 시 0 페이즈로 설정 
+    justAttack_df = justAttack_df.astype({'time': 'int'})
+    justAttack_df = justAttack_df.astype({'phase': 'int'})
 
 
     # 전체 데이터 저장 (있어도 덮어씌우기)
-    # match_participant_stats_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_participant_stats.csv", index=False)
-    # attacker_victim_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_attacker_victim.csv", index=False)
-    # justAttack_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_shooting.csv", index=False)
-    # blue_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_bluezone_damage.csv", index=False)
-    # firstVehicle_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_first_vehicle.csv", index=False)
+    match_participant_stats_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All\All_participant_stats.csv", index=False)
+    attacker_victim_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All\All_attacker_victim.csv", index=False)
+    justAttack_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All\All_shooting.csv", index=False)
+    blue_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All\All_bluezone_damage.csv", index=False)
+    firstVehicle_df.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All\All_first_vehicle.csv", index=False)
 
 
 
