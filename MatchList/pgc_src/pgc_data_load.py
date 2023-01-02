@@ -253,74 +253,8 @@ def personal_data():
     # 관련 데이터를 추출해서 분석에 활용할 정보를 찾는게 좋을듯 함.'''
 
     match_participant_stats_all = pd.merge(match_participant_stats_all, firstVehicle_df, on=['match_id', 'name'])
+    match_participant_stats_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\predict_rank.csv", index=False)
 
-    '''
-        일반적으로
-            r이 -1.0과 -0.7 사이면, 강한 음적 선형관계,
-            r이 -0.7과 -0.3 사이면, 뚜렷한 음적 선형관계,
-            r이 -0.3과 -0.1 사이면, 약한 음적 선형관계,
-            r이 -0.1과 +0.1 사이면, 거의 무시될 수 있는 선형관계,
-            r이 +0.1과 +0.3 사이면, 약한 양적 선형관계,
-            r이 +0.3과 +0.7 사이면, 뚜렷한 양적 선형관계,
-            r이 +0.7과 +1.0 사이면, 강한 양적 선형관계
-    
-        순위가 1~16위로 숫자가 낮을수록 잘했다는 의미 이므로 반대로 해석하면 된다. 
-        음의 상관관계 -> 양의 상관관계
-        
-        dbnos              -0.330664        음의 상관관계
-        assists            -0.338207        음의 상관관계
-        boosts             -0.420644        음의 상관관계
-        damage_dealt       -0.492121        음의 상관관계
-        headshot_kills     -0.243569        약한 음의 상관관계
-        heals              -0.239659        약한 음의 상관관계
-        kill_place          0.582664        양의 상관관계
-        kill_streaks       -0.345609        음의 상관관계
-        kills              -0.407835        음의 상관관계
-        longest_kill       -0.309572        음의 상관관계
-        revives            -0.183836        약한 음의 상관관계
-        ride_distance       0.016419        관게 없음
-        road_kills         -0.003751        관계 없음
-        swim_distance      -0.007492        관계 없음
-        team_kills          0.006575        관계 없음
-        time_survived      -0.709716        강항 음의 상관관계
-        vehicle_destroys   -0.160648        약한 음의 상관관계
-        walk_distance      -0.452229        음의 상관관계
-        weapons_acquired   -0.101177        약한 음의 상관관계
-        damage_taken       -0.361826        음의 상관관계
-        time                0.010637        관계없음 (차량탑승 시간)
-    '''
-
-    # 상관관계 분석
-    '''corrAnal = match_participant_stats_all[['dbnos', 'assists', 'boosts', 'damage_dealt',
-                                       'headshot_kills', 'heals', 'kill_place', 'kill_streaks', 'kills',
-                                       'longest_kill', 'revives', 'ride_distance',
-                                       'road_kills', 'swim_distance', 'team_kills', 'time_survived',
-                                       'vehicle_destroys', 'walk_distance', 'weapons_acquired',
-                                       'damage_taken', 'time', 'win_place']]
-
-    cor = corrAnal.corr()
-    # print(cor['win_place'])
-    
-    sns.set(style="white")
-
-    f, ax = plt.subplots(figsize=(14, 14))
-    cmap = sns.diverging_palette(200, 10, as_cmap=True)
-
-    mask = np.zeros_like(cor, dtype=np.bool)
-    mask[np.triu_indices_from(mask)] = True
-
-    sns.heatmap(cor, mask=mask, cmap=cmap, center=0.5, square=True,
-                linewidths=0.5, cbar_kws={"shrink": 0.75}, annot=True)
-
-    plt.title('ranking correlation', size=30)
-    ax.set_xticklabels(list(corrAnal.columns), size=14, rotation=90)
-    ax.set_yticklabels(list(corrAnal.columns), size=14, rotation=0)
-
-    for temp_num in range(len(corrAnal.columns)):
-        ax.add_patch(Rectangle((temp_num, temp_num), 1, 1, fill=False,
-                               edgecolor='black', lw=1, clip_on=False, alpha=0.5))
-
-    plt.show()'''
 
 
 
@@ -345,8 +279,93 @@ def personal_data():
     # print(loser_df['time'].mean())
 
 
+
 # 개인 기록을 가지고 순위를 예측 하는 함수 ( 팀의 평균 )
-def predict_rank(personal_data):
+def predict_rank():
+    from sklearn.model_selection import train_test_split
+
+    data = pd.read_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\predict_rank.csv")
+    '''
+        일반적으로
+            r이 -1.0과 -0.7 사이면, 강한 음적 선형관계,
+            r이 -0.7과 -0.3 사이면, 뚜렷한 음적 선형관계,
+            r이 -0.3과 -0.1 사이면, 약한 음적 선형관계,
+            r이 -0.1과 +0.1 사이면, 거의 무시될 수 있는 선형관계,
+            r이 +0.1과 +0.3 사이면, 약한 양적 선형관계,
+            r이 +0.3과 +0.7 사이면, 뚜렷한 양적 선형관계,
+            r이 +0.7과 +1.0 사이면, 강한 양적 선형관계
+
+        순위가 1~16위로 숫자가 낮을수록 잘했다는 의미 이므로 반대로 해석하면 된다. 
+        음의 상관관계 -> 양의 상관관계
+
+        dbnos              -0.330664        음의 상관관계
+        assists            -0.338207        음의 상관관계
+        boosts             -0.420644        음의 상관관계
+        damage_dealt       -0.492121        음의 상관관계
+        headshot_kills     -0.243569        약한 음의 상관관계
+        heals              -0.239659        약한 음의 상관관계
+        kill_place          0.582664        양의 상관관계
+        kill_streaks       -0.345609        음의 상관관계
+        kills              -0.407835        음의 상관관계
+        longest_kill       -0.309572        음의 상관관계
+        revives            -0.183836        약한 음의 상관관계
+        ride_distance       0.016419        관게 없음
+        road_kills         -0.003751        관계 없음
+        swim_distance      -0.007492        관계 없음
+        team_kills          0.006575        관계 없음
+        time_survived      -0.709716        강항 음의 상관관계
+        vehicle_destroys   -0.160648        약한 음의 상관관계
+        walk_distance      -0.452229        음의 상관관계
+        weapons_acquired   -0.101177        약한 음의 상관관계
+        damage_taken       -0.361826        음의 상관관계
+        time                0.010637        관계없음 (차량탑승 시간)
+    '''
+
+    # 상관관계 분석
+    '''corrAnal = data[['dbnos', 'assists', 'boosts', 'damage_dealt',
+                                       'headshot_kills', 'heals', 'kill_place', 'kill_streaks', 'kills',
+                                       'longest_kill', 'revives', 'ride_distance',
+                                       'road_kills', 'swim_distance', 'team_kills', 'time_survived',
+                                       'vehicle_destroys', 'walk_distance', 'weapons_acquired',
+                                       'damage_taken', 'time', 'win_place']]
+
+    cor = corrAnal.corr()
+    # print(cor['win_place'])
+
+    sns.set(style="white")
+
+    f, ax = plt.subplots(figsize=(14, 14))
+    cmap = sns.diverging_palette(200, 10, as_cmap=True)
+
+    mask = np.zeros_like(cor, dtype=np.bool)
+    mask[np.triu_indices_from(mask)] = True
+
+    sns.heatmap(cor, mask=mask, cmap=cmap, center=0.5, square=True,
+                linewidths=0.5, cbar_kws={"shrink": 0.75}, annot=True)
+
+    plt.title('ranking correlation', size=30)
+    ax.set_xticklabels(list(corrAnal.columns), size=14, rotation=90)
+    ax.set_yticklabels(list(corrAnal.columns), size=14, rotation=0)
+
+    for temp_num in range(len(corrAnal.columns)):
+        ax.add_patch(Rectangle((temp_num, temp_num), 1, 1, fill=False,
+                               edgecolor='black', lw=1, clip_on=False, alpha=0.5))
+
+    plt.show()'''
+
+
+    # 모델 생성
+    winner_rank_f = data.drop("win_place", axis=1)
+    winner_rank_l = data['win_place'].copy()
+    print(winner_rank_f)
+    # Train, Test 분류
+    X_train, X_test, Y_train, Y_test = train_test_split(winner_rank_f, winner_rank_l, test_size=0.3, random_state=42)
+    # Test, Validation 분류
+    X_test, X_val, Y_test, Y_val = train_test_split(X_test, Y_test, test_size=0.3)
+
+
+    print(data)
+
     return
     
 
@@ -356,4 +375,5 @@ def predict_rank(personal_data):
 
 
 if __name__ == "__main__":
-    personal_data()
+    # personal_data()
+    predict_rank()
