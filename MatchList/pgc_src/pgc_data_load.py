@@ -384,6 +384,8 @@ def predict_rank():
     time
     """
 
+    # https://5quad.github.io/2019/11/29/AIXProject.html
+
     winner_rank_f = scaler.fit_transform(winner_rank_f)
     print(winner_rank_f)
     winner_rank_l = corrAnal['win_place'].copy()
