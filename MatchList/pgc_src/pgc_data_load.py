@@ -236,11 +236,11 @@ def personal_data():
     pubg = PUBG(api_key=api_key, shard='pc-tournament', gzip=True)
 
 
-    match_participant_stats_all = pd.read_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_participant_stats.csv")
-    attacker_victim_all = pd.read_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_attacker_victim.csv")
-    justAttack_df = pd.read_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_shooting.csv")
-    blue_df = pd.read_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_bluezone_damage.csv")
-    firstVehicle_df = pd.read_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\All_first_vehicle.csv")
+    match_participant_stats_all = pd.read_csv(r"..\datas\pgc\Anal\All\All_participant_stats.csv")
+    attacker_victim_all = pd.read_csv(r"..\datas\pgc\Anal\All\All_attacker_victim.csv")
+    justAttack_df = pd.read_csv(r"..\datas\pgc\Anal\All\All_shooting.csv")
+    blue_df = pd.read_csv(r"..\datas\pgc\Anal\All\All_bluezone_damage.csv")
+    firstVehicle_df = pd.read_csv(r"..\datas\pgc\Anal\All\All_first_vehicle.csv")
     # 매치 리스트를 불러와 저장 (매치별 데이터)
     match_list = justAttack_df['match_id'].unique()
     # 자기장이 시작되기 전에 발생한 이벤트는 phase가 None값으로 설정되어 있어 이를 0 값으로 대체
@@ -253,7 +253,7 @@ def personal_data():
     # 관련 데이터를 추출해서 분석에 활용할 정보를 찾는게 좋을듯 함.'''
 
     match_participant_stats_all = pd.merge(match_participant_stats_all, firstVehicle_df, on=['match_id', 'name'])
-    match_participant_stats_all.to_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\predict_rank.csv", index=False)
+    match_participant_stats_all.to_csv(r"..\datas\pgc\Anal\All\predict_rank.csv", index=False)
 
 
 
@@ -284,7 +284,7 @@ def personal_data():
 def predict_rank():
     from sklearn.model_selection import train_test_split
 
-    data = pd.read_csv(r"C:\Users\HC\PycharmProjects\pubgProject\MatchList\datas\pgc\Anal\predict_rank.csv")
+    data = pd.read_csv(r"..\datas\pgc\Anal\All\predict_rank.csv")
     '''
         일반적으로
             r이 -1.0과 -0.7 사이면, 강한 음적 선형관계,
@@ -320,18 +320,24 @@ def predict_rank():
         damage_taken       -0.361826        음의 상관관계
         time                0.010637        관계없음 (차량탑승 시간)
     '''
-
+    death_type = {
+        'byplayer': 0,
+        'alive': 1,
+        'byzone': 2,
+        'suicide': 3
+    }
     # 상관관계 분석
-    '''corrAnal = data[['dbnos', 'assists', 'boosts', 'damage_dealt',
+    corrAnal = data[['dbnos', 'assists', 'boosts', 'damage_dealt', 'death_type',
                                        'headshot_kills', 'heals', 'kill_place', 'kill_streaks', 'kills',
                                        'longest_kill', 'revives', 'ride_distance',
                                        'road_kills', 'swim_distance', 'team_kills', 'time_survived',
                                        'vehicle_destroys', 'walk_distance', 'weapons_acquired',
                                        'damage_taken', 'time', 'win_place']]
-
+    corrAnal['death_type'] = corrAnal['death_type'].map(lambda x: death_type[x])
+    '''
     cor = corrAnal.corr()
     # print(cor['win_place'])
-
+    
     sns.set(style="white")
 
     f, ax = plt.subplots(figsize=(14, 14))
@@ -355,16 +361,38 @@ def predict_rank():
 
 
     # 모델 생성
-    winner_rank_f = data.drop("win_place", axis=1)
-    winner_rank_l = data['win_place'].copy()
+    # 데이터 내에 문자열 데이터 숫자로 변환
+    print(corrAnal.columns)
+    # feature, label 분리
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    winner_rank_f = corrAnal.drop("win_place", axis=1)
+
+    """ 정규화가 필요할 것 같은 칼럼
+    # 피해량 관련 ->
+    damage_dealt
+    damage_taken
+    
+    # 거리 관련 -> ??
+    longest_kill
+    ride_distance
+    swim_distance
+    walk_distance
+    
+    # 시간 관련 -> duration으로 나눠주면 게임 내의 % 계산 가능
+    time_survived
+    time
+    """
+
+    winner_rank_f = scaler.fit_transform(winner_rank_f)
     print(winner_rank_f)
-    # Train, Test 분류
-    X_train, X_test, Y_train, Y_test = train_test_split(winner_rank_f, winner_rank_l, test_size=0.3, random_state=42)
-    # Test, Validation 분류
-    X_test, X_val, Y_test, Y_val = train_test_split(X_test, Y_test, test_size=0.3)
+    winner_rank_l = corrAnal['win_place'].copy()
+    # # Train, Test 분류
+    # X_train, X_test, Y_train, Y_test = train_test_split(winner_rank_f, winner_rank_l, test_size=0.3, random_state=42)
+    # # Test, Validation 분류
+    # X_test, X_val, Y_test, Y_val = train_test_split(X_test, Y_test, test_size=0.3)
 
 
-    print(data)
 
     return
     
