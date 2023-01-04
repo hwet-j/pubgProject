@@ -93,6 +93,27 @@ def predict_rank():
     import seaborn as sns
     from operator import itemgetter
     from matplotlib.patches import Rectangle
+    import pickle
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import LabelEncoder
+    from sklearn.metrics import accuracy_score, log_loss
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn import svm
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+    from xgboost import XGBClassifier
+    import xgboost
+    import math
+    from sklearn import metrics
+    from sklearn.metrics import accuracy_score, classification_report, ConfusionMatrixDisplay, precision_score, \
+        recall_score, f1_score, roc_auc_score, roc_curve
     import warnings
     warnings.filterwarnings('ignore')
 
@@ -192,42 +213,59 @@ def predict_rank():
     # feature, label 분리
     from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler()
-    X = corrAnal.drop("win_place", axis=1)
+    X = corrAnal.drop(["win_place", "ride_distance", "road_kills", "swim_distance", "team_kills", "time"], axis=1)
     # Create new feature
-    X['average_weaponsAcquired'] = average_weaponsAcquired(data)
-    X['average_damage'] = average_damage(data)
-    X['totalDistance'] = total_distance(data)
-    X['headshotKillsPerc'] = data.headshot_kills / data.kills
-    X['dist_per_sec'] = dist_per_game(data)
+    # X['average_weaponsAcquired'] = average_weaponsAcquired(data)
+    # X['average_damage'] = average_damage(data)
+    # X['totalDistance'] = total_distance(data)
+    # X['headshotKillsPerc'] = data.headshot_kills / data.kills
+    # X['dist_per_sec'] = dist_per_game(data)
 
     X = X.replace((np.inf, -np.inf, np.nan), 0)
     print(X)
-    Y = corrAnal['win_place'].copy()
+    y = corrAnal['win_place'].copy()
 
 
     # Train, Test 분류
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     # Test, Validation 분류
-    X_test, X_val, Y_test, Y_val = train_test_split(X_test, Y_test, test_size=0.3)
+    X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.3)
 
-    params = {
-        "objective": "regression",
-        "metric": "mae",
-        "num_leaves": 150,
-        "learning_rate": 0.03,
-        "bagging_fraction": 0.9,
-        "bagging_seed": 0,
-        "num_threads": 4,
-        "colsample_bytree": 0.5,
-        'min_data_in_leaf': 1900,
-        'lambda_l2': 9
-    }
+    from sklearn.model_selection import GroupKFold
+    from sklearn.preprocessing import minmax_scale
     import lightgbm as lgb
-    reg2 = lgb.LGBMRegressor(params, n_estimators=2000)
-    reg2.fit(X_train, Y_train)
-    pred2 = reg2.predict(X_test, num_iteration=reg2.best_iteration_)
-    from sklearn.metrics import mean_absolute_error
-    print(mean_absolute_error(Y_test, pred2))
+    params = {'learning_rate': 0.05,
+              'objective': 'mae',
+              'metric': 'mae',
+              'num_leaves': 128,
+              'verbose': 1,
+              'random_state': 42,
+              'bagging_fraction': 0.7,
+              'feature_fraction': 0.7
+              }
+
+    reg = lgb.LGBMRegressor(**params, n_estimators=10000)
+    reg.fit(X_train, y_train)
+    pred = reg.predict(X_test, num_iteration=reg.best_iteration_)
+
+    # Plot feature importance
+    feature_importance = reg.feature_importances_
+    feature_importance = 100.0 * (feature_importance / feature_importance.max())
+    sorted_idx = np.argsort(feature_importance)
+    sorted_idx = sorted_idx[len(feature_importance) - 30:]
+    pos = np.arange(sorted_idx.shape[0]) + .5
+
+    plt.figure(figsize=(12, 8))
+    plt.barh(pos, feature_importance[sorted_idx], align='center')
+    plt.yticks(pos, X_train.columns[sorted_idx])
+    plt.xlabel('Relative Importance')
+    plt.title('Variable Importance')
+    plt.show()
+
+    print(X_train.columns[np.argsort(-feature_importance)].values)
+
+
+
 
 
     '''from sklearn.tree import DecisionTreeRegressor
