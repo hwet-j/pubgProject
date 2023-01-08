@@ -14,13 +14,15 @@ X = df.drop(columns=['winPlacePerc'])
 y = df['winPlacePerc']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
-
+import joblib
 # 사용할 데이터를 재선택
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
-model = RandomForestRegressor(n_estimators=40, min_samples_leaf=3, max_features='sqrt', n_jobs=-1)
-model.fit(X_train, y_train)
+rfmodel = RandomForestRegressor(n_estimators=40, min_samples_leaf=3, max_features='sqrt', n_jobs=-1)
+rfmodel.fit(X_train, y_train)
+joblib.dump(rfmodel, "../datas/rf_model.h5")
+# rfmodel.save("../datas/rf_model.h5")
 
-print('RandomForest mae train: ', mean_absolute_error(model.predict(X_train), y_train), 'mae test: ', mean_absolute_error(model.predict(X_test), y_test))
+print('RandomForest mae train: ', mean_absolute_error(rfmodel.predict(X_train), y_train), 'mae test: ', mean_absolute_error(rfmodel.predict(X_test), y_test))
 
 from lightgbm import LGBMRegressor
 lgbm_for_reg= LGBMRegressor(colsample_bytree=0.8, learning_rate=0.03, max_depth=30,
@@ -28,7 +30,12 @@ lgbm_for_reg= LGBMRegressor(colsample_bytree=0.8, learning_rate=0.03, max_depth=
               subsample_for_bin=45000, n_jobs =-1, max_bin=700, num_iterations=5100, min_data_in_bin=12)
 lgbm_for_reg.fit(X, y, verbose=1700, eval_set=[(X, y)], early_stopping_rounds=10)
 
+
+
+joblib.dump(lgbm_for_reg, "../datas/lgbm_model.h5")
+
 lgbm_pred = lgbm_for_reg.predict(X_test)
+
 print('LGBMRegressor mae train: ', mean_absolute_error(lgbm_for_reg.predict(X_train), y_train), 'mae test: ', mean_absolute_error(lgbm_for_reg.predict(X_test), y_test))
 
 
