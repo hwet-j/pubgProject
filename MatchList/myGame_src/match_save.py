@@ -9,7 +9,7 @@ def match_search_save(game_id):
     pubg = PUBG(api_key=api_key, shard='steam')
 
     try:  # 저장된 데이터 전체 불러오기
-        load_alldata = pd.read_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/ALL_MATCH.csv")
+        load_alldata = pd.read_csv("../datas/ALL_MATCH.csv")
     except:  # 저장된 데이터가 없다면 빈 데이터 프레임으로 생성
         load_alldata = pd.DataFrame()
 
@@ -22,7 +22,7 @@ def match_search_save(game_id):
     # 아이디 하나씩 작업 (프레임 생성 및 csv파일 저장)
     for g_id in game_id:
         try:    # 아이디 별 저장된 데이터 불러오기
-            personal_data = pd.read_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/" + g_id + ".csv")
+            personal_data = pd.read_csv("../datas/" + g_id + ".csv")
         except: # 저장된 데이터가 없다면 빈 데이터 프레임으로 생성
             personal_data = pd.DataFrame()
 
@@ -54,11 +54,11 @@ def match_search_save(game_id):
         # 전체 데이터를 하나의 데이터 프레임에 저장
         all_data = pd.concat([all_data, data], ignore_index=True)
         # 아이디 별 데이터 저장
-        data.to_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/" + g_id + ".csv", index=False)
+        data.to_csv("../datas/" + g_id + ".csv", index=False)
         
     # 중복 데이터가 있다면 삭제 (전부 동일한 정보만)
     all_data.drop_duplicates(inplace=True)
-    all_data.to_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/ALL_MATCH.csv", index=False)
+    all_data.to_csv("../datas/ALL_MATCH.csv", index=False)
     print("저장완료")
 
 
@@ -71,7 +71,7 @@ def competitive_save(game_id):
     pubg = PUBG(api_key=api_key, shard='steam')
 
     try:  # 저장된 데이터 전체 불러오기
-        load_alldata = pd.read_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/COMPETITIVE_MATCH.csv")
+        load_alldata = pd.read_csv("../datas/COMPETITIVE_MATCH.csv")
         
         index_list = []
         # 오류가 발생하거나 경쟁전 데이터가 아닌경우 삭제
@@ -99,7 +99,7 @@ def competitive_save(game_id):
     # 아이디 하나씩 작업 (프레임 생성 및 csv파일 저장)
     for g_id in game_id:
         try:  # 아이디 별 저장된 데이터 불러오기
-            personal_data = pd.read_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/COMPETITIVE_" + g_id + ".csv")
+            personal_data = pd.read_csv("../datas/COMPETITIVE_" + g_id + ".csv")
         except:  # 저장된 데이터가 없다면 빈 데이터 프레임으로 생성
             personal_data = pd.DataFrame()
 
@@ -132,16 +132,16 @@ def competitive_save(game_id):
         # 전체 데이터를 하나의 데이터 프레임에 저장
         all_data = pd.concat([all_data, data], ignore_index=True)
         # 아이디 별 데이터 저장
-        data.to_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/COMPETITIVE_" + g_id + ".csv", index=False)
+        data.to_csv("../datas/COMPETITIVE_" + g_id + ".csv", index=False)
 
     # 중복 데이터가 있다면 삭제 (전부 동일한 정보만)
     all_data.drop_duplicates(inplace=True)
-    all_data.to_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/COMPETITIVE_MATCH.csv", index=False)
+    all_data.to_csv("../datas/COMPETITIVE_MATCH.csv", index=False)
     print("저장완료")
 
 if __name__ == "__main__":
     # 게임 아이디 설정 및 매치리스트 함수 실행
     game_id = ['Hwet_J', 'sickhu', '30XXDDD', 'hyeonji']  # 리스트로 작성해서 여러 아이디 데이터 기록얻기.
     match_search_save(game_id)
-    # competitive_save(game_id)
+    competitive_save(game_id)
     print('종료')

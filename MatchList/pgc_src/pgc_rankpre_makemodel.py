@@ -63,20 +63,51 @@ plt.show()'''
 # print(data["weapons_acquired"].value_counts())
 data.drop(data[data.weapons_acquired >= 40].index, inplace=True)
 
-print(data["map_name"].value_counts())
-data.loc[data['map_name'] == "Erangel", 'map_name'] = 'Erangel (Remastered)'
-print(data["map_name"].value_counts())
 # 체력회복 관련
 data.drop(data[data.heals >= 40].index, inplace=True)
 data.drop(data[data.boosts >= 40].index, inplace=True)
 
-# 범주형 변수 수치?화
-
-# data = pd.get_dummies(data, columns=['map_name'])
-
-
-# 분석에 사용하지 않을 데이터 제거
+# 분석에 사용하지 않을 데이터 제거 (개인기록으로 예측)
 data.drop(['death_type', 'name', 'player_id', 'team_name', 'match_id', 'created_at', 'telemetry_link', 'team_roster_id',\
-            'team_member', 'team_rank', 'team_kill', 'team_assist', 'team_distance', 'total_distance',
+            'team_member', 'team_rank', 'team_kill', 'team_assist', 'team_distance',
             'team_damagedealt', 'team_damagetaken', 'team_timesurvived', "kills_without_moving"], axis=1, inplace=True)
 print(data.columns)
+
+from keras.utils import to_categorical
+
+# 맵 이름을 맵핑하기 위해 설정 (대회 기록이므로 맵이 사실상 2개지만 아마 이벤트성으로 사녹을 진행한 듯함)
+map_ecoding = {'Erangel':0, 'Erangel (Remastered)':0, "Miramar":1, 'Sanhok':2}
+data.replace({"map_name":map_ecoding}, inplace=True)
+print(data["map_name"].value_counts())
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
+from sklearn.ensemble import RandomForestRegressor
+import joblib   # 모델 저장
+
+X = data.drop(columns=['win_place'])
+y = data.win_place
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+
+# 모델 생성
+rfmodel = RandomForestRegressor(n_estimators=40, min_samples_leaf=3, max_features='sqrt', n_jobs=-1)
+rfmodel.fit(X_train, y_train)
+# 모델 저장
+joblib.dump(rfmodel, "../datas/pgc/rank_predict/rf_model.h5")
+# MAE 확인 (오차 절대 평균)
+print('RandomForest mae train: ', mean_absolute_error(rfmodel.predict(X_train), y_train), 'mae test: ', mean_absolute_error(rfmodel.predict(X_test), y_test))
+
+from lightgbm import LGBMRegressor
+lgbm_for_reg= LGBMRegressor(colsample_bytree=0.8, learning_rate=0.03, max_depth=30,
+              min_split_gain=0.00015, n_estimators=250, num_leaves=2200, reg_alpha=0.1, reg_lambda=0.001, subsample=0.8,
+              subsample_for_bin=45000, n_jobs =-1, max_bin=700, num_iterations=5100, min_data_in_bin=12)
+lgbm_for_reg.fit(X, y, verbose=1700, eval_set=[(X, y)], early_stopping_rounds=10)
+
+# 모델 저장
+joblib.dump(lgbm_for_reg, "../datas/pgc/rank_predict/lgbm_model.h5")
+# MAE 확인
+lgbm_pred = lgbm_for_reg.predict(X_test)
+print('LGBMRegressor mae train: ', mean_absolute_error(lgbm_for_reg.predict(X_train), y_train), 'mae test: ', mean_absolute_error(lgbm_for_reg.predict(X_test), y_test))
+
+

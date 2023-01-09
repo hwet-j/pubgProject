@@ -5,7 +5,7 @@
 # 저장된 매치 기록 가져오기
 def load_match():
     try:  # 저장된 데이터 전체 불러오기
-        load_alldata = pd.read_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/COMPETITIVE_MATCH.csv")
+        load_alldata = pd.read_csv("../datas/COMPETITIVE_MATCH.csv")
     except:  # 저장된 데이터가 없다면 빈 데이터 프레임으로 생성
         load_alldata = pd.DataFrame()
 
@@ -27,8 +27,6 @@ if __name__ == "__main__":
     all_match = load_match()
     user_list = all_match.user_name.unique()        # 플레이어 유니크 값
 
-
-    
     # 이후 사용한 무기나 선호 위치 등 추가
     
     # 유저별 분석
@@ -37,7 +35,7 @@ if __name__ == "__main__":
         # 매치 기록 하나씩 가져옴
         for mat in match_data.match_id:     
             # 서로 다른 아이디에 같은 매치를 진행하면 동일한 작업을 반복하므로 동일 매치 기록이 저장된 데이터가 있으면 제외
-            if os.path.isfile("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/match_data/" + mat + ".csv"):
+            if os.path.isfile("../datas/mydata/" + mat + ".csv"):
                 print("파일이 존재하여 SKIP")
                 continue
             # 매치 인스턴스 불러오기
@@ -117,9 +115,9 @@ if __name__ == "__main__":
             data_df = pd.DataFrame(zip(h_user_id, h_kill, h_headkill, h_longestkill, h_loadkill, h_teamkill, h_assist, h_damagedealt,\
                                        h_damagetaken, h_dbno, h_revive , h_walkdistance, h_ridedistance, h_swimdistance, h_distance, h_boost, \
                                        h_heal, h_deathtype, h_acquired, h_teammate, h_timesurvived, h_ranking))
-            data_df.columns = ['user_id', 'kill', 'headkill', 'longestkill', 'loadkill', 'teamkill', 'assist', 'damagedealt',\
-                                'damagetaken', 'dbno', 'revive', 'h_walkdistance', 'h_ridedistance', 'h_swimdistance', 'distance', 'boost', \
-                                 'heal', 'deathtype', 'acquired', 'teammate', 'timesurvived', 'ranking']
+            data_df.columns = ['user_id', 'kills', 'headshot_kills', 'longest_kill', 'load_kills', 'team_kills', 'assists', 'damage_dealt',\
+                                'damage_taken', 'dbnos', 'revives', 'walk_distance', 'ride_distance', 'swim_distance', 'total_distance', 'boosts', \
+                                 'heals', 'weapons_acquired', 'time_survived', 'win_place']
             # 공통된 match 정보를 입력 ( 비효율적, 다른 방법이 존재하면 변경예정 )
             if match_instance.map_id == "Erangel_Main" or match_instance.map_id == "Baltic_Main":
                 data_df["map_name"] = "에란겔"
@@ -135,8 +133,8 @@ if __name__ == "__main__":
                 
             data_df["game_created"] = match_instance.created_at
             data_df['game_mode'] = match_instance.game_mode
-            data_df["game_duration"] = match_instance.duration
-            data_df.to_csv("C:/Users/HC/PycharmProjects/pubgProject/MatchList/datas/match_data/" + mat + ".csv", index=False, encoding="euc-kr")
+            data_df["duration"] = match_instance.duration
+            data_df.to_csv("../datas/match_data/" + mat + ".csv", index=False, encoding="euc-kr")
             print("CSV파일 저장 완료")
 
 

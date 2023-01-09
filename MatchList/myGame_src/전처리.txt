@@ -1,0 +1,27 @@
+Python으로 전처리 하기
+
+1. 괄호 및 괄호 안 문자 제거(괄호와 안 내용까지 제거)
+Ex)
+import re
+str = "[정보] 아메리카노 11월 동안 10% 할인!"
+
+# (), [], {}, <> 형태의 괄호와 그 안에 문자 제거
+pattern = r'\([^)]*\)'  # ()
+pattern = r'\[[^)]*\]'  # []
+pattern = r'\<[^)]*\>'  # <>
+pattern = r'\{[^)]*\}'  # {}
+str = re.sub(pattern=pattern, repl='', string=str)
+
+2. 특수문자, 숫자 제거
+pattern = r'[^a-zA-Z가-힣]'
+str = re.sub(pattern=pattern, repl=' ', string=str)
+
+3. 단위 제거: cm, km, etc.
+units = ['mm', 'cm', 'km', 'ml', 'kg', 'g']
+for unit in units:
+    str = str.lower()   # 대문자를 소문자로 변환
+    str = str.replace(unit, '')
+
+4. 공백 기준으로 분할하기
+s_split = str.split()
+
