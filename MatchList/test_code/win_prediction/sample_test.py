@@ -195,12 +195,14 @@ test = pd.get_dummies(test, columns=['matchType'])
 # print(train.info())
 # Feature 선택 (분석에 사용할 데이터 선택)
 test_id = test['Id']    # 추후에 id로 predict한 결과 비교
-train.drop(['kills_without_moving', 'Id', 'groupId', 'matchId', 'matchType_crashfpp', 'matchType_crashtpp', 'matchType_duo',\
+train.drop(['kills_without_moving', 'Id', 'groupId', 'matchId', 'matchType_crashfpp', 'matchType_crashtpp', 'matchType_duo', 'player_num',\
             'matchType_duo-fpp', 'matchType_flarefpp', 'matchType_flaretpp', 'matchType_normal-duo-fpp', 'matchType_normal-squad',\
-            'matchType_normal-squad-fpp', 'matchType_solo', 'matchType_solo-fpp', 'matchType_squad', 'matchType_squad-fpp'], axis=1, inplace=True)
-test.drop(['kills_without_moving', 'Id', 'groupId', 'matchId', 'matchType_crashfpp', 'matchType_crashtpp', 'matchType_duo',\
+            'matchType_normal-squad-fpp', 'matchType_solo', 'matchType_solo-fpp', 'matchType_squad', 'matchType_squad-fpp',\
+            'maxPlace', 'numGroups', 'rankPoints', 'winPoints'], axis=1, inplace=True)
+test.drop(['kills_without_moving', 'Id', 'groupId', 'matchId', 'matchType_crashfpp', 'matchType_crashtpp', 'matchType_duo', 'player_num',\
             'matchType_duo-fpp', 'matchType_flarefpp', 'matchType_flaretpp', 'matchType_normal-duo-fpp', 'matchType_normal-squad',\
-            'matchType_normal-squad-fpp', 'matchType_solo', 'matchType_solo-fpp', 'matchType_squad', 'matchType_squad-fpp'], axis=1, inplace=True)
+            'matchType_normal-squad-fpp', 'matchType_solo', 'matchType_solo-fpp', 'matchType_squad', 'matchType_squad-fpp',\
+           'maxPlace', 'numGroups', 'rankPoints', 'winPoints'], axis=1, inplace=True)
 
 
 # print(len(train))
@@ -208,12 +210,12 @@ test.drop(['kills_without_moving', 'Id', 'groupId', 'matchId', 'matchType_crashf
 # kaggle_data = pd.concat([train, test], axis=0)
 # print(len(kaggle_data))
 
-train.to_csv("../datas/p_train.csv", index=False)
-test.to_csv("../datas/p_test.csv", index=False)
-
+# train.to_csv("../datas/p_train.csv", index=False)
+# test.to_csv("../datas/p_test.csv", index=False)
+print(train.columns)
 # kaggle_data.to_csv("../datas/Kaggle_data.csv", index=False)
-# import sys
-# sys.exit()
+import sys
+sys.exit()
 
 sample = 500000
 df_sample = train.sample(sample)

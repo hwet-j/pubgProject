@@ -6,8 +6,8 @@ import pandas as pd
 df = pd.read_csv("../datas/p_train.csv")
 df = df[['walkDistance', 'total_distance', 'killPlace', 'weaponsAcquired', 'boosts',
      'heals', 'longestKill', 'matchDuration', 'rideDistance', 'damageDealt',
-     'numGroups', 'maxPlace', 'player_num', 'kills', 'killStreaks', 'rankPoints',
-     'revives', 'DBNOs', 'winPoints', 'killPoints', 'assists', 'swimDistance',
+     'kills', 'killStreaks',
+     'revives', 'DBNOs', 'assists', 'swimDistance',
      'headshotKills', 'teamKills', 'roadKills', 'winPlacePerc']]
 
 X = df.drop(columns=['winPlacePerc'])
@@ -19,7 +19,7 @@ import joblib
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
 rfmodel = RandomForestRegressor(n_estimators=40, min_samples_leaf=3, max_features='sqrt', n_jobs=-1)
 rfmodel.fit(X_train, y_train)
-joblib.dump(rfmodel, "../datas/rf_model.h5")
+joblib.dump(rfmodel, "../datas/models/rf_model.h5")
 # rfmodel.save("../datas/rf_model.h5")
 
 print('RandomForest mae train: ', mean_absolute_error(rfmodel.predict(X_train), y_train), 'mae test: ', mean_absolute_error(rfmodel.predict(X_test), y_test))
@@ -32,7 +32,7 @@ lgbm_for_reg.fit(X, y, verbose=1700, eval_set=[(X, y)], early_stopping_rounds=10
 
 
 
-joblib.dump(lgbm_for_reg, "../datas/lgbm_model.h5")
+joblib.dump(lgbm_for_reg, "../datas/models/lgbm_model.h5")
 
 lgbm_pred = lgbm_for_reg.predict(X_test)
 
