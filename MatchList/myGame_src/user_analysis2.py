@@ -48,18 +48,19 @@ if __name__ == "__main__":
             # 경쟁전 데이터만 사용
             if match_instance.data['attributes']['matchType'] != "competitive":
                 continue
-            print(user, match_instance.created_at)
+            # print(user, match_instance.created_at)
             # 데이터프레임에 저장할 변수 리스트
             h_damagetaken = []
             participants_stats = []
             tot_distance = []
+            roster_id = []
 
             for participant in match_instance.participants:
                 player = participant.name
-
+                roster_id.append(participant.roster.data['id'])
                 player_stats = participant.stats
                 participants_stats.append(player_stats)
-                print(player_stats)
+
                 tot_distance.append((player_stats["walk_distance"] + player_stats['ride_distance'] + player_stats['swim_distance']))
                 # 데이터 프레임에 저장하기 위해 리스트로 작성
                 try:        # 오류? 무언가의 이유로 존재하지 않는 유저가 있음 (초기 체력 100이므로 죽었다 가정하고 100)
@@ -75,6 +76,7 @@ if __name__ == "__main__":
             match_participant_stats_df["created_at"] = match_instance.created_at
             match_participant_stats_df["map_name"] = match_telemetry.map_name()
             match_participant_stats_df["duration"] = match_instance.duration
+            match_participant_stats_df['roster_id'] = roster_id
             match_participant_stats_df["telemetry_link"] = match_instance.telemetry_url
 
             # 공통된 match 정보를 입력 ( 비효율적, 다른 방법이 존재하면 변경예정 )
