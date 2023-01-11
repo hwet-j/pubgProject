@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load pgc_filter %}
+{% block content %}
+
+
+<div class="container my-3">
+    <form action="/">
+
+    아이디 : <input type="text" name="title"><br>
+    플랫폼 : <select name="select">
+                <option value="steam">스팀</option>
+                <option value="kakao">카카오</option>
+            </select>
+    <input type="submit" value="검색">
+
+    </form>
+
+    <table class="table">
+        <thead>
+        <tr class="text-center table-dark">
+            <th>번호</th>
+            <th><span data-tooltip-text="국가-대회이름,대회종류">대회종류</th>
+            <th style="width:50%"><span data-tooltip-text="경기에 대한 고유번호">매치ID</th>
+            <th>생성시간</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if PgcList %}
+        {% for match in PgcList %}
+        <tr class="text-center">
+            <td>
+                <!-- 번호 = 전체건수 - 시작인덱스 - 현재인덱스 + 1 -->
+                {{ PgcList.paginator.count|sub:PgcList.start_index|sub:forloop.counter0|add:1 }}
+            </td>
+            <td>
+                {% if 'pgcgf' in match.tournament_type%}
+                    <span data-tooltip-text="Grand_Final : 그랜드 파이널(4일)">
+                {% elif 'pgcgs' in match.tournament_type and 'pgcgsb' not in match.tournament_type %}
+                    <span data-tooltip-text="Grand Survival : 그랜드 서바이벌(1일)">
+                {% elif 'pgclbp' in match.tournament_type %}
+                    <span data-tooltip-text="Losers Braket : 패자 브래킷(4일)">
+                {% elif 'pgcwb' in match.tournament_type %}
+                    <span data-tooltip-text="Winners Braket : 승자 브래킷(2일)">
+                {% elif 'pgcgsb' in match.tournament_type %}
+                    <span data-tooltip-text="Group Stage : 그룹 스테이지 (6일)">
+                {% elif 'pgcws' in match.tournament_type %}
+                    <span data-tooltip-text="Weekly Survival : 위클리 서바이벌 (3일)">
+                {% elif 'pgcwf' in match.tournament_type %}
+                    <span data-tooltip-text="Weekly Final : 위클리 파이널 (2일)">
+                {% elif 'pgcbm' in match.tournament_type %}
+                    <span data-tooltip-text="Bottom 16 : 하위 16개 팀의 경기 (2일)">
+                {% elif 'pgcrd' in match.tournament_type %}
+                    <span data-tooltip-text="Rank Decision : 순위 결정전 (3일)">
+                {% else %}
+                {% endif %}
+
+                {{ match.tournament_type }}
+            </td>
+            <td>
+                <a href="{% url 'pro:detail' match.match_id %}">{{ match.match_id }}</a>
+            </td>
+            <td>{{ match.create_date }}</td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="4">매치 정보를 불러오지 못했습니다.</td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <!-- 페이징처리 시작 -->
+    <ul class="pagination justify-content-center">
+        <!-- 이전페이지 -->
+        {% if PgcList.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ PgcList.previous_page_number }}">이전</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">이전</a>
+        </li>
+        {% endif %}
+        <!-- 페이지리스트 -->
+        {% for page_number in PgcList.paginator.page_range %}
+        {% if page_number >= PgcList.number|add:-5 and page_number <= PgcList.number|add:5 %}
+        {% if page_number == PgcList.number %}
+        <li class="page-item active" aria-current="page">
+            <a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
+        </li>
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        <!-- 다음페이지 -->
+        {% if PgcList.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ PgcList.next_page_number }}">다음</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" tabindex="-1" aria-disabled="true" href="#">다음</a>
+        </li>
+        {% endif %}
+    </ul>
+    <!-- 페이징처리 끝 -->
+   <a href = "{% url 'pro:match_data_read' %}" class="btn btn-primary">정보 업데이트</a>
+
+</div>
+
+
+{% endblock %}
+
+
+
+

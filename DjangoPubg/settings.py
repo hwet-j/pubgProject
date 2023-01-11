@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'common.apps.CommonConfig',
+    'rank.apps.RankConfig',
     'pro.apps.ProConfig',
     'question.apps.QuestionConfig',
     'gamer.apps.GamerConfig',

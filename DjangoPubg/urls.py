@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from gamer import views
 from pro import views
 
 
@@ -25,5 +24,6 @@ urlpatterns = [
     path('gamer/', include("gamer.urls")),
     path('common/', include("common.urls")),
     path('pro/', include("pro.urls")),
+    path('rank/', include("rank.urls")),
     path('', views.home, name='home'),  # '/' 에 해당되는 path
 ]
