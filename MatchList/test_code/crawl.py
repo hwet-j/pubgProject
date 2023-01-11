@@ -25,6 +25,3 @@ driver.implicitly_wait(time_to_wait=5)
 # 플랫폼 확인
 platform = driver.find_element(By.XPATH, '/html/body/div[1]/section/div[2]/div/div/div/div/div[2]/div[1]/span').text
 platform_text = platform.find(r'([0-9A-Za-z]+)\_')
-
-
-
