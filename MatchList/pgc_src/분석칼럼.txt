@@ -1,0 +1,24 @@
+dbnos               v
+assists             v
+boosts              v
+damage_dealt        v
+headshot_kills      v
+heals               v
+kill_place              --- api로 추출가능
+kill_streaks            --- api로 추출가능
+kills               v
+longest_kill            --- 추출가능
+revives             v
+ride_distance       v
+road_kills              --- dak
+swim_distance           --- dak
+team_kills              --- 추출가능..?
+time_survived           --- 추출가능
+vehicle_destroys        --- dak
+walk_distance       v
+weapons_acquired    v
+win_place           v
+damage_taken            --- api로 추출해야하니 X
+map_name            v
+duration                --- dak에서 1위 기준으로 하면 게임시간 추출가능
+total_distance          --- 계산가능
