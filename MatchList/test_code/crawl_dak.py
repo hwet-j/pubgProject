@@ -15,9 +15,11 @@ def dakggCrawling(name):
 
     driver = webdriver.Chrome(executable_path='chromedriver')
     # 브라우저 위치 설정
-    driver.set_window_position(-2500, -400)
+    # driver.set_window_position(-2500, -400)
+    driver.set_window_position(0, 0)
     # 브라우저 크기 설정
-    driver.set_window_size(1250, 1200)
+    # driver.set_window_size(1250, 1200)
+    driver.set_window_size(700, 800)
 
     driver.get(url=URL)
     # 암시적 대기 (무조건 대기하지 않고 최대 5초)
@@ -77,9 +79,10 @@ def dakggCrawling(name):
         stat_li_list = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR,
               '#__layout > div > main > div:nth-child(4) > section > ul > li')))
         for stat_li in stat_li_list:
-            map = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section > dl > div.Info.Match__info--map > dd'))).text
+            # 상세보기 클릭 (숨겨져있어 클릭하지 않으면 크롤링 안됨)
             stat_li.find_element(By.CSS_SELECTOR, "li > div > section.Match > div > button").click()
             driver.implicitly_wait(time_to_wait=5)
+            map = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section > dl > div.Info.Match__info--map > dd'))).text
             damage = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(4) > div:nth-child(1) > dd'))).text
             kill = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(4) > div:nth-child(2) > dd'))).text
             head_kill = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(4) > div:nth-child(3) > dd'))).text
