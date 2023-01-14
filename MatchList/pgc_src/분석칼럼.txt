@@ -32,7 +32,7 @@ damage_dealt        v
 headshot_kills      v
 heals               v
 kills               v
-longest_kill        v (m 단위 삭제 필요)
+longest_kill        v
 revives             v
 total_distance      v
 ride_distance       v

@@ -15,11 +15,11 @@ def dakggCrawling(name):
 
     driver = webdriver.Chrome(executable_path='chromedriver')
     # 브라우저 위치 설정
-    # driver.set_window_position(-2500, -400)
-    driver.set_window_position(0, 0)
+    driver.set_window_position(-2500, -400)
+    # driver.set_window_position(0, 0)
     # 브라우저 크기 설정
-    # driver.set_window_size(1250, 1200)
-    driver.set_window_size(700, 800)
+    driver.set_window_size(1250, 1200)
+    # driver.set_window_size(700, 800)
 
     driver.get(url=URL)
     # 암시적 대기 (무조건 대기하지 않고 최대 5초)
@@ -83,6 +83,9 @@ def dakggCrawling(name):
             stat_li.find_element(By.CSS_SELECTOR, "li > div > section.Match > div > button").click()
             driver.implicitly_wait(time_to_wait=5)
             map = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section > dl > div.Info.Match__info--map > dd'))).text
+            rank_data = WebDriverWait(stat_li, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'li > div > section.Match > header > p.Match__rank > span')))
+            my_rank = rank_data[0].text[1:]
+            total_team = rank_data[1].text[1:]
             damage = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(4) > div:nth-child(1) > dd'))).text
             kill = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(4) > div:nth-child(2) > dd'))).text
             head_kill = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(4) > div:nth-child(3) > dd'))).text
@@ -99,7 +102,28 @@ def dakggCrawling(name):
             walk_distance = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(6) > div:nth-child(6) > dd'))).text
             ride_distance = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(6) > div:nth-child(7) > dd'))).text
             swim_distance = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > dl:nth-child(6) > div:nth-child(8) > dd'))).text
-            longest_kill = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match > dl > div.Info.Match__info--longest.d-none.d-md-flex > dd'))).text
+            longest_kill = WebDriverWait(stat_li, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'li > div > section.Match > dl > div.Info.Match__info--longest.d-none.d-md-flex > dd'))).text[:-1]
+            # 전체 순위 클릭 (1위 생존시간을 기준으로 게임의 지속시간을 추출)
+            stat_li.find_element(By.CSS_SELECTOR, "li > div > section.Match__section-detail > ul > li:nth-child(3) > button").click()
+            winner_list = WebDriverWait(stat_li, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'li > div > section.Match__section-detail > div > ul > li:nth-child(1) > ul > li')))
+            temp_minute = 0
+            temp_second = 0
+
+            for winner in winner_list:
+                live_time = WebDriverWait(winner, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR,'li > ul > li.Team__stat.col.col-11.d-none.d-md-flex'))).text
+                minute = live_time[:live_time.find(":")]
+                second = live_time[live_time.find(":")+1:]
+
+                temp_minute = minute
+                temp_second = second
+                print(live_time)
+
+
+            time.sleep(10)
+            # ul > li:nth-child(1) > ul > li.Team__stat.col.col-11.d-none.d-md-flex
+            # __layout > div > main > div:nth-child(4) > section > ul > li:nth-child(1) > div > section.Match__section-detail > ul > li:nth-child(3) > button
+            #__layout > div > main > div:nth-child(4) > section > ul > li:nth-child(1) > div > section.Match__section-detail > div > ul > li:nth-child(1)
+            print(longest_kill)
 
 
         sys.exit()

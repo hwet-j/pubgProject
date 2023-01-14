@@ -1,5 +1,8 @@
 import re
-text = "플랫폼: Steam"
+text = "플랫폼:Steam"
 
-text_edit = text[text.find(":")+1:]
-print(text_edit)
+text_front = text[text.find(":")+1:]
+text_back = text[:text.find(":")]
+
+print(text_front)
+print(text_back)
