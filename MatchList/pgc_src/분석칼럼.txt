@@ -39,14 +39,15 @@ ride_distance       v
 road_kills          v
 swim_distance       v
 vehicle_destroys    v
-time_survived       v (계산 필요)
+time_survived       v
 walk_distance       v
 weapons_acquired    v
-win_place
+win_place           v
 map_name            v
-team_kills              --- 추출가능..?
-duration                --- dak에서 1위 기준으로 하면 게임시간 추출가능
+duration            v
+team_count          v
 
+team_kills              --- 추출가능..?
 kill_place              --- api로 추출가능
 kill_streaks            --- api로 추출가능
 damage_taken            --- api로 추출해야하니 X

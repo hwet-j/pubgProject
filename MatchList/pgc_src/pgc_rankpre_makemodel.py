@@ -69,10 +69,9 @@ data.drop(data[data.boosts >= 40].index, inplace=True)
 
 # 분석에 사용하지 않을 데이터 제거 (개인기록으로 예측)
 data.drop(['death_type', 'name', 'player_id', 'team_name', 'match_id', 'created_at', 'telemetry_link', 'team_roster_id',\
-            'team_member', 'team_rank', 'team_kill', 'team_assist', 'team_distance',
+            'team_member', 'team_rank', 'team_kill', 'team_assist', 'team_distance', 'kill_place', 'kill_streaks', 'team_kills', 'damage_taken',
             'team_damagedealt', 'team_damagetaken', 'team_timesurvived', "kills_without_moving"], axis=1, inplace=True)
 print(data.columns)
-
 from keras.utils import to_categorical
 
 # 맵 이름을 맵핑하기 위해 설정 (대회 기록이므로 맵이 사실상 2개지만 아마 이벤트성으로 사녹을 진행한 듯함)
@@ -87,7 +86,6 @@ import joblib   # 모델 저장
 
 X = data.drop(columns=['win_place'])
 y = data.win_place
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
 
 # 모델 생성
