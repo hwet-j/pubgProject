@@ -4,8 +4,8 @@
 
 
 <div class="container my-3">
-    <form action="/">
-
+    <form action="{% url 'rank:read_data' %}", method="POST">
+    {% csrf_token %}
     아이디 : <input type="text" name="title"><br>
     플랫폼 : <select name="select">
                 <option value="steam">스팀</option>
@@ -19,52 +19,54 @@
         <thead>
         <tr class="text-center table-dark">
             <th>번호</th>
-            <th><span data-tooltip-text="국가-대회이름,대회종류">대회종류</th>
-            <th style="width:50%"><span data-tooltip-text="경기에 대한 고유번호">매치ID</th>
-            <th>생성시간</th>
+            <th>아이디</th>
+            <th>순위</th>
+            <th>맵</th>
+            <th>킬</th>
+            <th>가한데미지</th>
+            <th>DBNO</th>
+            <th>이동 거리</th>
+            <th>순위예측</th>
         </tr>
         </thead>
         <tbody>
-        {% if PgcList %}
-        {% for match in PgcList %}
+        {% if PersonalData %}
+        {% for match in PersonalData %}
         <tr class="text-center">
             <td>
                 <!-- 번호 = 전체건수 - 시작인덱스 - 현재인덱스 + 1 -->
-                {{ PgcList.paginator.count|sub:PgcList.start_index|sub:forloop.counter0|add:1 }}
+                {{ PersonalData.paginator.count|sub:PersonalData.start_index|sub:forloop.counter0|add:1 }}
             </td>
+            <td>{{ match.user_id }}</td>
+            <td>{{ match.win_place }} / {{ match.team_count }}</td>
+            <td>{{ match.map_name }}</td>
+            <td>{{ match.kills }}</td>
+            <td>{{ match.damage_dealt }}</td>
+            <td>{{ match.dbnos }}</td>
+            <td>{{ match.total_distance }} km</td>
             <td>
-                {% if 'pgcgf' in match.tournament_type%}
-                    <span data-tooltip-text="Grand_Final : 그랜드 파이널(4일)">
-                {% elif 'pgcgs' in match.tournament_type and 'pgcgsb' not in match.tournament_type %}
-                    <span data-tooltip-text="Grand Survival : 그랜드 서바이벌(1일)">
-                {% elif 'pgclbp' in match.tournament_type %}
-                    <span data-tooltip-text="Losers Braket : 패자 브래킷(4일)">
-                {% elif 'pgcwb' in match.tournament_type %}
-                    <span data-tooltip-text="Winners Braket : 승자 브래킷(2일)">
-                {% elif 'pgcgsb' in match.tournament_type %}
-                    <span data-tooltip-text="Group Stage : 그룹 스테이지 (6일)">
-                {% elif 'pgcws' in match.tournament_type %}
-                    <span data-tooltip-text="Weekly Survival : 위클리 서바이벌 (3일)">
-                {% elif 'pgcwf' in match.tournament_type %}
-                    <span data-tooltip-text="Weekly Final : 위클리 파이널 (2일)">
-                {% elif 'pgcbm' in match.tournament_type %}
-                    <span data-tooltip-text="Bottom 16 : 하위 16개 팀의 경기 (2일)">
-                {% elif 'pgcrd' in match.tournament_type %}
-                    <span data-tooltip-text="Rank Decision : 순위 결정전 (3일)">
-                {% else %}
-                {% endif %}
-
-                {{ match.tournament_type }}
+                <script>
+                $('#submit').on('click', function(e) {
+                data = $('#text').val();
+                $.ajax({
+                    type:'POST',
+                    url:'http://127.0.0.1:8000/rank',
+                    data:JSON.stringify(data),
+                    success:function(json){
+                        console.log("data pass success",json);
+                    },
+                    error : function(xhr,errmsg,err) {
+                    console.log(xhr.status + ": " + xhr.responseText);
+                    }
+               });
+              });
+                </script>
             </td>
-            <td>
-                <a href="{% url 'pro:detail' match.match_id %}">{{ match.match_id }}</a>
-            </td>
-            <td>{{ match.create_date }}</td>
         </tr>
         {% endfor %}
         {% else %}
         <tr>
-            <td colspan="4">매치 정보를 불러오지 못했습니다.</td>
+            <td colspan="6" class="text-center">매치 정보를 불러오지 못했습니다.</td>
         </tr>
         {% endif %}
         </tbody>
@@ -82,9 +84,9 @@
         </li>
         {% endif %}
         <!-- 페이지리스트 -->
-        {% for page_number in PgcList.paginator.page_range %}
-        {% if page_number >= PgcList.number|add:-5 and page_number <= PgcList.number|add:5 %}
-        {% if page_number == PgcList.number %}
+        {% for page_number in PersonalData.paginator.page_range %}
+        {% if page_number >= PersonalData.number|add:-5 and page_number <= PersonalData.number|add:5 %}
+        {% if page_number == PersonalData.number %}
         <li class="page-item active" aria-current="page">
             <a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
         </li>
@@ -98,7 +100,7 @@
         <!-- 다음페이지 -->
         {% if PgcList.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ PgcList.next_page_number }}">다음</a>
+            <a class="page-link" href="?page={{ PersonalData.next_page_number }}">다음</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -107,7 +109,6 @@
         {% endif %}
     </ul>
     <!-- 페이징처리 끝 -->
-   <a href = "{% url 'pro:match_data_read' %}" class="btn btn-primary">정보 업데이트</a>
 
 </div>
 

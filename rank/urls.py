@@ -7,6 +7,5 @@ app_name = "rank"
 
 urlpatterns = [
     path('', views.index, name="index"),
-
-
+    path('read_data', views.readData, name="read_data"),
 ]
