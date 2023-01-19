@@ -2,7 +2,18 @@
 {% load pgc_filter %}
 {% block content %}
 
-
+<script type="text/javascript">
+        function post_like() {
+            console.log("hi")
+            $.ajax({
+                url: "{%url 'rank:pre_rank' %}", // data를 전송할 url 입니다.
+                dataType: "json",
+                success: function (response) { // ajax 통신이 정상적으로 완료되었을 때
+                    $('#like_count').html(response.like_count) //id가 like_count의 내용을 전송받은 좋아요 수로 바꾼다
+                }
+            })
+        }
+</script>
 <div class="container my-3">
     <form action="{% url 'rank:read_data' %}", method="POST">
     {% csrf_token %}
@@ -45,22 +56,10 @@
             <td>{{ match.dbnos }}</td>
             <td>{{ match.total_distance }} km</td>
             <td>
-                <script>
-                $('#submit').on('click', function(e) {
-                data = $('#text').val();
-                $.ajax({
-                    type:'POST',
-                    url:'http://127.0.0.1:8000/rank',
-                    data:JSON.stringify(data),
-                    success:function(json){
-                        console.log("data pass success",json);
-                    },
-                    error : function(xhr,errmsg,err) {
-                    console.log(xhr.status + ": " + xhr.responseText);
-                    }
-               });
-              });
-                </script>
+                  <button id="{{match.id}}" onclick="post_like()"> <!--좋아효 버튼을 만들어주기-->
+                    <span id="like_count">순위예측</span>
+                    <!--{{blog.like.count}}가 없어도 되지만! 처음에 0을 보여주기 위해 넣어줌!-->
+                    </button>
             </td>
         </tr>
         {% endfor %}
@@ -74,9 +73,9 @@
     <!-- 페이징처리 시작 -->
     <ul class="pagination justify-content-center">
         <!-- 이전페이지 -->
-        {% if PgcList.has_previous %}
+        {% if PersonalData.has_previous %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ PgcList.previous_page_number }}">이전</a>
+            <a class="page-link" href="?page={{ PersonalData.previous_page_number }}">이전</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -98,7 +97,7 @@
         {% endif %}
         {% endfor %}
         <!-- 다음페이지 -->
-        {% if PgcList.has_next %}
+        {% if PersonalData.has_next %}
         <li class="page-item">
             <a class="page-link" href="?page={{ PersonalData.next_page_number }}">다음</a>
         </li>

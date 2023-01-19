@@ -4,7 +4,7 @@ import seaborn as sns
 
 
 # 데이터 불러오기
-data = pd.read_csv("./datas/Train_data.csv")
+data = pd.read_csv("./datas/crawl_train_data.csv")
 
 # 결측치 확인
 # print(data.isnull().sum())

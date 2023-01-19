@@ -362,15 +362,17 @@ def dakggIdcrawl(name):
     driver.quit()
     return player_data
 
-def loadParticipants():
+def loadParticipants(number):
     import pandas as pd
     import random
     participants_data = pd.read_csv("./datas/participants.csv")
     participants_list = participants_data['participant'].values.tolist()
     participants_list = list(set(participants_list))
-    add_num = random.randint(0, len(participants_list)-100)
-    if len(participants_list) >= 200:       # 데이터 100개만
-        participants_list = participants_list[add_num:add_num+100]
+    add_num = random.randint(0, len(participants_list)-number)
+    if len(participants_list) >= number + 100:       # 데이터 100개만
+        participants_list = participants_list[add_num:add_num+number]
+    else:
+        participants_list = participants_list[0:200]
     return participants_list
 
 
@@ -378,7 +380,7 @@ if __name__ == "__main__":
     # 내 아이디로 만났던 모든 플레이어의 목록을 크콜링하여 저장 ( 분석에 사용할 데이터 )
     # dakggIdcrawl("Hwet_J")
     # 중복된 데이터가 존재할 수 있으므로 처리 작업 및 리스트로 반환
-    game_id_list = loadParticipants()
+    game_id_list = loadParticipants(200)
     # game_id_list = ["92nianweisuonan"]       # 테스트
     dakggCrawling(game_id_list)
 

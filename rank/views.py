@@ -1,12 +1,14 @@
 import pandas as pd
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 # Create your views here.
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator     # 페이징을 위한 라이브러리
 import csv
 from rank.models import PersonalData
-from MatchList.django_apply.main import dakggCrawling
+from MatchList.django_apply.main import dakggCrawling, predict_one
 from rank.forms import ArticleForm
+import json
+
 
 ''' 페이지의 첫 화면 '''
 def index(request):
@@ -18,6 +20,7 @@ def index(request):
 
     return render(request, "rank/rank_home.html", context)
 
+""" 아이디, 플랫폼을 입력받아 데이터를 크롤링하는 작업 및 전체 정보 불러오기 """
 def readData(request):
     import os
     import time
@@ -97,3 +100,38 @@ def readData(request):
     page_obj = paginator.get_page(page)
     context = {'PersonalData': page_obj}
     return render(request, "rank/rank_home.html", context)
+
+
+def predict_rank(request, id):
+    match_data = PersonalData.objects.filter(id=id).values()
+    # object = get_object_or_404(match_data)
+
+    print(match_data[0]['win_place'])
+    context = {
+        'id' : match_data[0]['id'],
+        'pre_ranking' : match_data[0]['win_place']
+    }
+    return render(request, 'rank/rank_home.html', context)
+    # return JsonResponse(data)
+    # 같은 홈페이지에 머물기
+    # return redirect(request.META.get("HTTP_REFERER", 'redirect_if_referer_not_found'))
+
+# ajax 코드 작성 필요.. json 형식 전송까지 완료ㅇㄱ쇼ㅕ8
+def likes(request):
+    print("dd")
+    if request.META.get("HTTP_X_REQUESTED_WITH") == 'XMLHttpRequest':  # ajax 방식일 때 아래 코드 실행
+        # id = request.GET['id']  # 좋아요를 누른 게시물id (blog_id)가지고 오기
+        # post = PersonalData.objects.get(id=id)
+        # print(post)
+        message = "좋아요 취소"
+        print("asdf")
+        '''user = request.user  # request.user : 현재 로그인한 유저
+        if post.like.filter(id=user.id).exists():  # 이미 좋아요를 누른 유저일 때
+            post.like.remove(user)  # like field에 현재 유저 추가
+            message = "좋아요 취소"  # 화면에 띄울 메세지
+        else:  # 좋아요를 누르지 않은 유저일 때
+            post.like.add(user)  # like field에 현재 유저 삭제
+            message = "좋아요"  # 화면에 띄울 메세지
+        # post.like.count() : 게시물이 받은 좋아요 수'''
+        context = {'like_count': 1, "message": message}
+        return HttpResponse(json.dumps(context), content_type='application/json')
