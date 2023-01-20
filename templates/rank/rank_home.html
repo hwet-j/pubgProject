@@ -3,17 +3,20 @@
 {% block content %}
 
 <script type="text/javascript">
-        function post_like() {
-            console.log("hi")
+        function predict_button(number) {
+            let msg = number
+            console.log(msg);
             $.ajax({
                 url: "{%url 'rank:pre_rank' %}", // data를 전송할 url 입니다.
                 dataType: "json",
+                data:{'msg':msg},
                 success: function (response) { // ajax 통신이 정상적으로 완료되었을 때
-                    $('#like_count').html(response.like_count) //id가 like_count의 내용을 전송받은 좋아요 수로 바꾼다
+                    $('#result_show_'+msg).html(response.result_show) //id가 result_show의 내용을 전송받은 정보로 바꿔준다.
                 }
-            })
+            });
         }
 </script>
+
 <div class="container my-3">
     <form action="{% url 'rank:read_data' %}", method="POST">
     {% csrf_token %}
@@ -56,10 +59,9 @@
             <td>{{ match.dbnos }}</td>
             <td>{{ match.total_distance }} km</td>
             <td>
-                  <button id="{{match.id}}" onclick="post_like()"> <!--좋아효 버튼을 만들어주기-->
-                    <span id="like_count">순위예측</span>
-                    <!--{{blog.like.count}}가 없어도 되지만! 처음에 0을 보여주기 위해 넣어줌!-->
-                    </button>
+                <button id="click_button" onclick="predict_button({{match.id}})"> <!--순위예측 버튼 생성-->
+                    <span id="result_show_{{match.id}}">순위예측</span>
+                </button>
             </td>
         </tr>
         {% endfor %}
