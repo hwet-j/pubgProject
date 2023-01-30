@@ -107,7 +107,6 @@ def readData(request):
 
 # ajax로 순위예측 하기
 def predict_rank(request):
-    import pandas as pd
     if request.META.get("HTTP_X_REQUESTED_WITH") == 'XMLHttpRequest':  # ajax 방식일 때 아래 코드 실행
         # 데이터 불러오기
         id = request.GET['msg']  # 고유번호 가져오기

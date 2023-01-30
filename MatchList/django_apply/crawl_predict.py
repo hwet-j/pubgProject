@@ -9,6 +9,7 @@ def dakggCrawling(name, platform):
     import time
     URL = 'https://dak.gg/pubg'
 
+    base_path = os.getcwd()
     # 옵션 생성
     options = webdriver.ChromeOptions()
     # 창 숨기는 옵션 추가
@@ -56,8 +57,8 @@ def dakggCrawling(name, platform):
         li_list = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located(
                 (By.CSS_SELECTOR, '#__layout > div > main > div:nth-child(4) > section > nav > ul > li')))
 
-        if os.path.isfile("./datas/" + name + ".csv"):
-            be_player_data = pd.read_csv("./datas/" + name + ".csv")
+        if os.path.isfile(base_path + "/MatchList/django_apply/datas/user/" + name + ".csv"):
+            be_player_data = pd.read_csv(base_path + "/MatchList/django_apply/datas/user/" + name + ".csv")
         else:
             be_player_data = pd.DataFrame()
 
@@ -225,7 +226,8 @@ def dakggCrawling(name, platform):
          'total_distance', 'ride_distance', 'road_kills', 'swim_distance',
          'vehicle_destroys', 'time_survived', 'walk_distance',
          'weapons_acquired', 'team_count', 'map_name', 'duration', 'win_place']]
-        player_data.to_csv("C:/Users/ghlck/PycharmProjects/pubg/MatchList/django_apply/datas/" + name + ".csv", index=False)
+        # 데이터 저장
+        player_data.to_csv(base_path + "/MatchList/django_apply/datas/" + name + ".csv", index=False)
     except:
         pass
     finally:
@@ -236,3 +238,4 @@ if __name__ == "__main__":
     name = "Hwet_J"
     platform = "스팀"
     dakggCrawling(name, platform)
+
